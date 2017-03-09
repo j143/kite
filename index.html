@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Kite Manual &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="#">Kite  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="kite-manual">
+<h1>Kite Manual<a class="headerlink" href="#kite-manual" title="Permalink to this headline">¶</a></h1>
+<p>Kite is an open source toolbox and library for processing and analyzing InSAR displacement.</p>
+<div class="section" id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<div class="keywords">
+    <span>InSAR displacement analysis</span>
+    <span>displacement processing</span>
+    <span>quadtree calculation and parametrisation</span>
+    <span>InSAR noise analysis</span>
+    <span>covariance calculation</span>
+    <span>error estimation</span>
+</div></div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#debian-ubuntu">Debian / Ubuntu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#macos-sierra-macports">MacOS (Sierra, MacPorts)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples_01-init.html">Scene import/initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_02-io.html">Saving and loading Scenes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_03-quadtree.html">Quadtree parametrisation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples_04-covariance.html">Covariance calculation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="spool.html">Spool (GUI)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#displacement">Displacement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#quadtree">Quadtree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#covariance">Covariance</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Module Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="kite.scene.html">The Scene Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-sceneconfig">The SceneConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-meta-information-container">The Meta Information Container</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-frame">The Frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-losunitvectors">The LOSUnitVectors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#module-kite.scene_io">The Scene I/O Modules</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kite.quadtree.html">The Quadtree Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="kite.quadtree.html#the-quadtreeconfig">The QuadtreeConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.quadtree.html#the-quadnode-class">The QuadNode Class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kite.covariance.html">The Covariance Module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="kite.covariance.html#the-covarianceconfig">The CovarianceConfig</a></li>
+<li class="toctree-l3"><a class="reference internal" href="kite.covariance.html#model-assumptions">Model Assumptions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kite.spool.html">The Spool module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

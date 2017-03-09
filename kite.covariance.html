@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Covariance Module &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Spool module" href="kite.spool.html" />
+    <link rel="prev" title="The Quadtree Module" href="kite.quadtree.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="modules.html" accesskey="U">Module Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-covariance-module">
+<h1>The Covariance Module<a class="headerlink" href="#the-covariance-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="kite.Covariance">
+<em class="property">class </em><code class="descclassname">kite.</code><code class="descname">Covariance</code><span class="sig-paren">(</span><em>scene</em>, <em>config=&lt;kite.covariance.CovarianceConfig object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical covariance for noise estimation of
+<a class="reference internal" href="kite.scene.html#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene.displacement</span></code></a>.</p>
+<p>The covariance between <a class="reference internal" href="kite.quadtree.html#kite.Quadtree.leafs" title="kite.Quadtree.leafs"><code class="xref py py-attr docutils literal"><span class="pre">kite.Quadtree.leafs</span></code></a> is
+used as a weighting measure for the optimization process.</p>
+<p>Two different methods are implemented to estimate the covariance function:</p>
+<ol class="arabic simple">
+<li>The distance between <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>
+leaf focal points (<code class="xref py py-attr docutils literal"><span class="pre">covariance_focal</span></code>)</li>
+<li>The more <em>accurate</em> statistical distances between every nodes pixels,
+this process is computational very expensive and
+can take a few minutes or longer.
+See <code class="xref py py-class docutils literal"><span class="pre">covariance</span></code> or
+<a class="reference internal" href="#kite.Covariance.weight_matrix" title="kite.Covariance.weight_matrix"><code class="xref py py-class docutils literal"><span class="pre">weight_matrix</span></code></a>.</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>quadtree</strong> (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>) &#8211; Quadtree to work on</li>
+<li><strong>config</strong> (<a class="reference internal" href="#kite.covariance.CovarianceConfig" title="kite.covariance.CovarianceConfig"><code class="xref py py-class docutils literal"><span class="pre">CovarianceConfig</span></code></a>) &#8211; Config object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="kite.Covariance.covarianceAnalytical">
+<code class="descname">covarianceAnalytical</code><span class="sig-paren">(</span><em>regime=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.covarianceAnalytical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.covarianceAnalytical" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytical covariance based on the spectral model fit
+from <a class="reference internal" href="#kite.covariance.modelPowerspec" title="kite.covariance.modelPowerspec"><code class="xref py py-func docutils literal"><span class="pre">modelPowerspec()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Covariance and corresponding distances.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple, <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (covariance_analytical, distance)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.covariance_func">
+<code class="descname">covariance_func</code><a class="headerlink" href="#kite.Covariance.covariance_func" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Covariance function derived from powerspectrum of
+displacement noise patch.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tuple, <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (covariance, distance)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.covariance_matrix">
+<code class="descname">covariance_matrix</code><a class="headerlink" href="#kite.Covariance.covariance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Covariance matrix calculated from sub-distances pairs from quadtree
+node-to-node.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a> x
+<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.covariance_matrix_focal">
+<code class="descname">covariance_matrix_focal</code><a class="headerlink" href="#kite.Covariance.covariance_matrix_focal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> This matrix uses distances between focal points. Fast but
+statistically not reliable method. For final approach use
+<a class="reference internal" href="#kite.Covariance.covariance_matrix" title="kite.Covariance.covariance_matrix"><code class="xref py py-attr docutils literal"><span class="pre">covariance_matrix</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a> x
+<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.covariance_model">
+<code class="descname">covariance_model</code><a class="headerlink" href="#kite.Covariance.covariance_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Covariance model parameters for
+<a class="reference internal" href="#kite.covariance.modelCovariance" title="kite.covariance.modelCovariance"><code class="xref py py-func docutils literal"><span class="pre">modelCovariance()</span></code></a> retrieved
+from <a class="reference internal" href="#kite.Covariance.covarianceAnalytical" title="kite.Covariance.covarianceAnalytical"><code class="xref py py-attr docutils literal"><span class="pre">covarianceAnalytical</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Get the parameters.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tuple, <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">b</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.covariance_model_rms">
+<code class="descname">covariance_model_rms</code><a class="headerlink" href="#kite.Covariance.covariance_model_rms" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">RMS missfit between <a class="reference internal" href="#kite.Covariance.covariance_model" title="kite.Covariance.covariance_model"><code class="xref py py-class docutils literal"><span class="pre">covariance_model</span></code></a>
+and <a class="reference internal" href="#kite.Covariance.covariance_func" title="kite.Covariance.covariance_func"><code class="xref py py-class docutils literal"><span class="pre">covariance_func</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.export_weight_matrix">
+<code class="descname">export_weight_matrix</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.export_weight_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.export_weight_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export the full <a class="reference internal" href="#kite.Covariance.weight_matrix" title="kite.Covariance.weight_matrix"><code class="xref py py-attr docutils literal"><span class="pre">weight_matrix</span></code></a> to an ASCII
+file. The data can be loaded through <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.loadtxt.html#numpy.loadtxt" title="(in NumPy v1.12)"><code class="xref py py-func docutils literal"><span class="pre">numpy.loadtxt()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; path to export to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.getLeafCovariance">
+<code class="descname">getLeafCovariance</code><span class="sig-paren">(</span><em>leaf1</em>, <em>leaf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.getLeafCovariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.getLeafCovariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the covariance between <code class="docutils literal"><span class="pre">leaf1</span></code> and <code class="docutils literal"><span class="pre">leaf2</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>leaf1</strong> (str of <cite>leaf.id</cite> or <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>) &#8211; Leaf one</li>
+<li><strong>leaf2</strong> (str of <cite>leaf.id</cite> or <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>) &#8211; Leaf two</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Covariance between <code class="docutils literal"><span class="pre">leaf1</span></code> and <code class="docutils literal"><span class="pre">leaf2</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.getLeafWeight">
+<code class="descname">getLeafWeight</code><span class="sig-paren">(</span><em>leaf</em>, <em>model='focal'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.getLeafWeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.getLeafWeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the absolute weight of <code class="docutils literal"><span class="pre">leaf</span></code>, summation of all weights from
+<a class="reference internal" href="#kite.Covariance.weight_matrix" title="kite.Covariance.weight_matrix"><code class="xref py py-attr docutils literal"><span class="pre">kite.Covariance.weight_matrix</span></code></a></p>
+<div class="math">
+<p><img src="_images/math/9b6d868022416c8927b63210c256a4ee67652efb.svg" alt="w_{x} = \sum_i W_{x,i}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model</strong> (<em>str</em>) &#8211; <code class="docutils literal"><span class="pre">Focal</span></code> or <code class="docutils literal"><span class="pre">full</span></code>, default <code class="docutils literal"><span class="pre">focal</span></code></li>
+<li><strong>leaf</strong> (<a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>) &#8211; A leaf from <a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Weight of the leaf</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.noise_coord">
+<code class="descname">noise_coord</code><a class="headerlink" href="#kite.Covariance.noise_coord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coordinates of the noise patch in local coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Set the noise coordinates</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Get the noise coordinates</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, <code class="docutils literal"><span class="pre">[llE,</span> <span class="pre">llN,</span> <span class="pre">sizeE,</span> <span class="pre">sizeN]</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.noise_patch_size_km2">
+<code class="descname">noise_patch_size_km2</code><a class="headerlink" href="#kite.Covariance.noise_patch_size_km2" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Noise patch size in <img class="math" src="_images/math/897476f6ea68406015bd04a31f61a96711d9c7b9.svg" alt="km^2"/>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.nthreads">
+<code class="descname">nthreads</code><a class="headerlink" href="#kite.Covariance.nthreads" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Number of threads (CPU cores) to use for full covariance</dt>
+<dd>calculation</dd>
+</dl>
+<p>Setting <code class="docutils literal"><span class="pre">nthreads</span></code> to <code class="docutils literal"><span class="pre">0</span></code> uses all available cores (default).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Sets the number of threads</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.plot">
+<code class="descname">plot</code><a class="headerlink" href="#kite.Covariance.plot" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Simple overview plot to summarize the covariance.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.powerspecModel">
+<code class="descname">powerspecModel</code><span class="sig-paren">(</span><em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.powerspecModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.powerspecModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the analytical power based on the fit of
+<code class="xref py py-func docutils literal"><span class="pre">powerspec_model()</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>k</strong> (float or <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) &#8211; Wavenumber(s)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Power at wavenumber <code class="docutils literal"><span class="pre">k</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">float or <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.powerspec_model">
+<code class="descname">powerspec_model</code><a class="headerlink" href="#kite.Covariance.powerspec_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Powerspectrum model parameters based on the spectral model after
+<a class="reference internal" href="#kite.covariance.modelPowerspec" title="kite.covariance.modelPowerspec"><code class="xref py py-func docutils literal"><span class="pre">modelPowerspec()</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Model parameters <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">b</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">tuple, floats</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.powerspec_model_rms">
+<code class="descname">powerspec_model_rms</code><a class="headerlink" href="#kite.Covariance.powerspec_model_rms" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">RMS missfit between <code class="xref py py-class docutils literal"><span class="pre">powerspecNoise1D</span></code>
+and <code class="xref py py-class docutils literal"><span class="pre">powerspec_model`</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.selectNoiseNode">
+<code class="descname">selectNoiseNode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.selectNoiseNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.selectNoiseNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose noise node from quadtree
+the biggest <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> from
+<a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A quadnode with the least signal.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.setConfig">
+<code class="descname">setConfig</code><span class="sig-paren">(</span><em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.setConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.setConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets and updated the config of the instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<a class="reference internal" href="#kite.covariance.CovarianceConfig" title="kite.covariance.CovarianceConfig"><code class="xref py py-class docutils literal"><span class="pre">CovarianceConfig</span></code></a>, optional) &#8211; New config instance, defaults to configuration provided
+by parent <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.structure_func">
+<code class="descname">structure_func</code><a class="headerlink" href="#kite.Covariance.structure_func" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Structure function derived from <code class="docutils literal"><span class="pre">noise_patch</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tuple, <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (structure_func, distance)</td>
+</tr>
+</tbody>
+</table>
+<p>Adapted from
+<a class="reference external" href="http://clouds.eos.ubc.ca/~phil/courses/atsc500/docs/strfun.pdf">http://clouds.eos.ubc.ca/~phil/courses/atsc500/docs/strfun.pdf</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Covariance.syntheticNoise">
+<code class="descname">syntheticNoise</code><span class="sig-paren">(</span><em>shape=(1024</em>, <em>1024)</em>, <em>dEdN=None</em>, <em>anisotropic=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#Covariance.syntheticNoise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Covariance.syntheticNoise" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Create random synthetic noise with the same character as defined</dt>
+<dd>in <code class="xref py py-attr docutils literal"><span class="pre">noise_data</span></code>.</dd>
+</dl>
+<p>This function uses the powerspectrum of the empirical noise
+(<code class="xref py py-func docutils literal"><span class="pre">powerspecNoise()</span></code>) to create synthetic noise for model
+pertubation. The default sampling distances are taken from
+<code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.dE</span></code> and <code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.dN</span></code>. And can be
+overwritten.
+:param shape: shape of the desired noise patch.</p>
+<blockquote>
+<div>Pixels in northing and easting (<cite>nE</cite>, <cite>nN</cite>),
+defaults to <cite>(1024, 1024)</cite>.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dEdN</strong> &#8211; The sampling distance in easting, defaults to
+(<code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.dE</span></code>, <code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.dN</span></code>).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Noise patch</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.weight_matrix">
+<code class="descname">weight_matrix</code><a class="headerlink" href="#kite.Covariance.weight_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Weight matrix from full covariance <img class="math" src="_images/math/78eff4f3f2a11e4312591add473c0692c60b288a.svg" alt="\sqrt{cov^{-1}}"/>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a> x
+<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.weight_matrix_focal">
+<code class="descname">weight_matrix_focal</code><a class="headerlink" href="#kite.Covariance.weight_matrix_focal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Weight matrix from fast focal method
+<img class="math" src="_images/math/a4b3ea209a34afa48ec696e59bbbd20894c7c11b.svg" alt="\sqrt{cov_{focal}^{-1}}"/>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a> x
+<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.weight_vector">
+<code class="descname">weight_vector</code><a class="headerlink" href="#kite.Covariance.weight_vector" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Weight vector from full covariance <img class="math" src="_images/math/78eff4f3f2a11e4312591add473c0692c60b288a.svg" alt="\sqrt{cov^{-1}}"/>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Covariance.weight_vector_focal">
+<code class="descname">weight_vector_focal</code><a class="headerlink" href="#kite.Covariance.weight_vector_focal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Weight vector from fast focal method
+<img class="math" src="_images/math/a4b3ea209a34afa48ec696e59bbbd20894c7c11b.svg" alt="\sqrt{cov_{focal}^{-1}}"/>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>,
+size (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nleafs" title="kite.Quadtree.nleafs"><code class="xref py py-class docutils literal"><span class="pre">nleafs</span></code></a>)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="the-covarianceconfig">
+<h2>The CovarianceConfig<a class="headerlink" href="#the-covarianceconfig" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.covariance.CovarianceConfig">
+<em class="property">class </em><code class="descclassname">kite.covariance.</code><code class="descname">CovarianceConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#CovarianceConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.covariance.CovarianceConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="CovarianceConfig.noise_coord">
+<em class="property">♦ </em><code class="descname">noise_coord</code><a class="headerlink" href="#CovarianceConfig.noise_coord" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts_array.Array</span></code>), <em>optional</em></p>
+<p>Noise patch coordinates and size,</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="CovarianceConfig.a">
+<em class="property">♦ </em><code class="descname">a</code><a class="headerlink" href="#CovarianceConfig.a" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em></p>
+<p>Exponential covariance model; scaling factor. See <a class="reference internal" href="#kite.covariance.modelCovariance" title="kite.covariance.modelCovariance"><code class="xref py py-func docutils literal"><span class="pre">modelCovariance()</span></code></a></p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="CovarianceConfig.b">
+<em class="property">♦ </em><code class="descname">b</code><a class="headerlink" href="#CovarianceConfig.b" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em></p>
+<p>Exponential covariance model; exponential decay. See <a class="reference internal" href="#kite.covariance.modelCovariance" title="kite.covariance.modelCovariance"><code class="xref py py-func docutils literal"><span class="pre">modelCovariance()</span></code></a></p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="CovarianceConfig.variance">
+<em class="property">♦ </em><code class="descname">variance</code><a class="headerlink" href="#CovarianceConfig.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em></p>
+<p>Variance of the model</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="CovarianceConfig.adaptive_subsampling">
+<em class="property">♦ </em><code class="descname">adaptive_subsampling</code><a class="headerlink" href="#CovarianceConfig.adaptive_subsampling" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">bool</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">True</span></code></p>
+<p>Adaptive subsampling flag for full covariance calculation.</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="CovarianceConfig.covariance_matrix">
+<em class="property">♦ </em><code class="descname">covariance_matrix</code><a class="headerlink" href="#CovarianceConfig.covariance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts_array.Array</span></code>), <em>optional</em></p>
+<p>Cached covariance matrix, see <a class="reference internal" href="#kite.Covariance.covariance_matrix" title="kite.Covariance.covariance_matrix"><code class="xref py py-attr docutils literal"><span class="pre">covariance_matrix</span></code></a></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="model-assumptions">
+<h2>Model Assumptions<a class="headerlink" href="#model-assumptions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="kite.covariance.modelCovariance">
+<code class="descclassname">kite.covariance.</code><code class="descname">modelCovariance</code><span class="sig-paren">(</span><em>distance</em>, <em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#modelCovariance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.covariance.modelCovariance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exponential model to estimate a positive-definite covariance</p>
+<p>We assume the following covariance model to describe the empirical noise
+observation:</p>
+<div class="math">
+<p><img src="_images/math/23458e767c88faa4ba57252d64d4dfb0ea983596.svg" alt="cov(dist) = c \cdot e^{\frac{-dist}{b}}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>distance</strong> (float or <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) &#8211; Distance between</li>
+<li><strong>a</strong> (<em>float</em>) &#8211; Linear model parameter</li>
+<li><strong>b</strong> (<em>float</em>) &#8211; Exponential model parameter</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Covariance at <code class="docutils literal"><span class="pre">distance</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="kite.covariance.modelPowerspec">
+<code class="descclassname">kite.covariance.</code><code class="descname">modelPowerspec</code><span class="sig-paren">(</span><em>k</em>, <em>beta</em>, <em>D</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/covariance.html#modelPowerspec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.covariance.modelPowerspec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exponential Linear model to estimate a log-linear powerspectrum</p>
+<p>We assume the following log-linear model for the measured powerspectrum</p>
+<div class="math">
+<p><img src="_images/math/7e3ce9554397392de680b8a45c88fac181a3d193.svg" alt="pow(k) = \frac{k^\beta}{D}"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>k</strong> (float or <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>) &#8211; Wavenumber</li>
+<li><strong>a</strong> (<em>float</em>) &#8211; Exponential model factor</li>
+<li><strong>b</strong> (<em>float</em>) &#8211; Fractional model factor</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kite.spool.html" title="The Spool module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kite.quadtree.html" title="The Quadtree Module"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

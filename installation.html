@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Kite Manual" href="index.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">Kite  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Kite has been tested on <em>Debian based distributions</em> (eg. Mint and Ubuntu).</p>
+<div class="section" id="debian-ubuntu">
+<h2>Debian / Ubuntu<a class="headerlink" href="#debian-ubuntu" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>sudo apt-get install python-pyside python-pyside.qtcore python-pyside.qtopengl python-yaml python-scipy python-numpy
+git clone https://gitext.gfz-potsdam.de/isken/kite.git
+<span class="nb">cd</span> kite
+sudo pip install .
+</pre></div>
+</div>
+</div>
+<div class="section" id="macos-sierra-macports">
+<h2>MacOS (Sierra, MacPorts)<a class="headerlink" href="#macos-sierra-macports" title="Permalink to this headline">¶</a></h2>
+<p>Install without root, installing <cite>pyrocko</cite> is a prerequisite. Please visit <a class="reference external" href="http://pyrocko.org/v0.3/install_mac.html">http://pyrocko.org/v0.3/install_mac.html</a></p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>git clone https://gitext.gfz-potsdam.de/isken/kite.git
+<span class="nb">cd</span> kite
+python setup.py --user --install-scripts<span class="o">=</span>/usr/local/bin
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Kite Manual"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

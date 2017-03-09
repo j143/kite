@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Saving and loading Scenes &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quadtree parametrisation" href="examples_03-quadtree.html" />
+    <link rel="prev" title="Scene import/initialization" href="examples_01-init.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="examples.html" accesskey="U">Examples</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="saving-and-loading-scenes">
+<h1>Saving and loading Scenes<a class="headerlink" href="#saving-and-loading-scenes" title="Permalink to this headline">¶</a></h1>
+<p>The native file structure of <code class="docutils literal"><span class="pre">kite</span></code> is based on NumPy binary files together with <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> configuration files holding the necessary information to fully reconstruct instances of</p>
+<ul class="simple">
+<li><a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>,</li>
+<li><a class="reference internal" href="kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a>,</li>
+<li>and <a class="reference internal" href="kite.scene.html#kite.scene.Meta" title="kite.scene.Meta"><code class="xref py py-class docutils literal"><span class="pre">Meta</span></code></a>,</li>
+</ul>
+<p>through serializing the correspondig <em>Config</em> classes (<a class="reference internal" href="modules.html"><span class="doc">Module Reference</span></a>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The expensive calculation of <a class="reference internal" href="kite.covariance.html#kite.Covariance.covariance_matrix" title="kite.Covariance.covariance_matrix"><code class="xref py py-attr docutils literal"><span class="pre">kite.Covariance.covariance_matrix</span></code></a> is saved in the YAML file!</p>
+</div>
+<p>Importing data from a foreign file format and transfering it to kite&#8217;s native format is as easy as 1, 2, 3...</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">Scene</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">import_data</span><span class="p">(</span><span class="s1">&#39;unwrap_ll.grd&#39;</span><span class="p">)</span>  <span class="c1"># GMT5SAR import</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;kite_scene&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The kite file structure consists of only two files:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">project_name</span><span class="o">.</span><span class="n">yml</span>
+<span class="n">project_name</span><span class="o">.</span><span class="n">npz</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="examples_03-quadtree.html" title="Quadtree parametrisation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="examples_01-init.html" title="Scene import/initialization"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

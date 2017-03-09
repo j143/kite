@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kite.covariance &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.covariance</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">covariance_ext</span>
+<span class="kn">from</span> <span class="nn">pyrocko</span> <span class="k">import</span> <span class="n">guts</span>
+<span class="kn">from</span> <span class="nn">pyrocko.guts_array</span> <span class="k">import</span> <span class="n">Array</span>
+<span class="kn">from</span> <span class="nn">kite.meta</span> <span class="k">import</span> <span class="p">(</span><span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span><span class="p">,</span>  <span class="c1"># noqa</span>
+                       <span class="n">trimMatrix</span><span class="p">,</span> <span class="n">derampMatrix</span><span class="p">,</span> <span class="n">squareMatrix</span><span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Covariance&#39;</span><span class="p">,</span> <span class="s1">&#39;CovarianceConfig&#39;</span><span class="p">]</span>
+
+<span class="n">noise_regimes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mi">2000</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mi">2000</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="mi">500</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mi">500</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="mi">10</span><span class="p">),</span>
+    <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">inf</span><span class="p">)]</span>
+
+
+<div class="viewcode-block" id="modelCovariance"><a class="viewcode-back" href="../../kite.covariance.html#kite.modelCovariance">[docs]</a><span class="k">def</span> <span class="nf">modelCovariance</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exponential model to estimate a positive-definite covariance</span>
+
+<span class="sd">    We assume the following covariance model to describe the empirical noise</span>
+<span class="sd">    observation:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        cov(dist) = c \\cdot e^{\\frac{-dist}{b}}</span>
+
+<span class="sd">    :param distance: Distance between</span>
+<span class="sd">    :type distance: float or :class:`numpy.ndarray`</span>
+<span class="sd">    :param a: Linear model parameter</span>
+<span class="sd">    :type a: float</span>
+<span class="sd">    :param b: Exponential model parameter</span>
+<span class="sd">    :type b: float</span>
+<span class="sd">    :returns: Covariance at ``distance``</span>
+<span class="sd">    :rtype: :class:`numpy.ndarray`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">distance</span><span class="o">/</span><span class="n">b</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="modelPowerspec"><a class="viewcode-back" href="../../kite.covariance.html#kite.modelPowerspec">[docs]</a><span class="k">def</span> <span class="nf">modelPowerspec</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">D</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exponential Linear model to estimate a log-linear powerspectrum</span>
+
+<span class="sd">    We assume the following log-linear model for the measured powerspectrum</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        pow(k) = \\frac{k^\\beta}{D}</span>
+
+
+<span class="sd">    :param k: Wavenumber</span>
+<span class="sd">    :type k: float or :class:`numpy.ndarray`</span>
+<span class="sd">    :param a: Exponential model factor</span>
+<span class="sd">    :type a: float</span>
+<span class="sd">    :param b: Fractional model factor</span>
+<span class="sd">    :type b: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">k</span><span class="o">**</span><span class="n">beta</span><span class="p">)</span><span class="o">/</span><span class="n">D</span></div>
+
+
+<div class="viewcode-block" id="CovarianceConfig"><a class="viewcode-back" href="../../kite.covariance.html#kite.CovarianceConfig">[docs]</a><span class="k">class</span> <span class="nc">CovarianceConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
+    <span class="n">noise_coord</span> <span class="o">=</span> <span class="n">Array</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+        <span class="n">serialize_as</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">,</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Noise patch coordinates and size,&#39;</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Exponential covariance model; scaling factor. &#39;</span>
+             <span class="s1">&#39;See :func:`~kite.covariance.modelCovariance`&#39;</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Exponential covariance model; exponential decay. &#39;</span>
+             <span class="s1">&#39;See :func:`~kite.covariance.modelCovariance`&#39;</span><span class="p">)</span>
+    <span class="n">variance</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Variance of the model&#39;</span><span class="p">)</span>
+    <span class="n">adaptive_subsampling</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Bool</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Adaptive subsampling flag for full covariance calculation.&#39;</span><span class="p">)</span>
+    <span class="n">covariance_matrix</span> <span class="o">=</span> <span class="n">Array</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">serialize_as</span><span class="o">=</span><span class="s1">&#39;base64&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Cached covariance matrix, &#39;</span>
+             <span class="s1">&#39;see :attr:`~kite.Covariance.covariance_matrix`&#39;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Covariance"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance">[docs]</a><span class="k">class</span> <span class="nc">Covariance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Analytical covariance for noise estimation of</span>
+<span class="sd">    :class:`kite.Scene.displacement`.</span>
+
+<span class="sd">    The covariance between :attr:`kite.Quadtree.leafs` is</span>
+<span class="sd">    used as a weighting measure for the optimization process.</span>
+
+<span class="sd">    Two different methods are implemented to estimate the covariance function:</span>
+
+<span class="sd">    1. The distance between :class:`~kite.quadtree.QuadNode`</span>
+<span class="sd">       leaf focal points (:attr:`~kite.Covariance.covariance_focal`)</span>
+<span class="sd">    2. The more *accurate* statistical distances between every nodes pixels,</span>
+<span class="sd">       this process is computational very expensive and</span>
+<span class="sd">       can take a few minutes or longer.</span>
+<span class="sd">       See :class:`~kite.Covariance.covariance` or</span>
+<span class="sd">       :class:`~kite.Covariance.weight_matrix`.</span>
+
+<span class="sd">    :param quadtree: Quadtree to work on</span>
+<span class="sd">    :type quadtree: :class:`~kite.Quadtree`</span>
+<span class="sd">    :param config: Config object</span>
+<span class="sd">    :type config: :class:`~kite.covariance.CovarianceConfig`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+    <span class="n">evConfigChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">CovarianceConfig</span><span class="p">()):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">quadtree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">scene</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec1d_cached</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec2d_cached</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec3d_cached</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nthreads</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">getChild</span><span class="p">(</span><span class="s1">&#39;Covariance&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">evConfigChanged</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setConfig</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLeafCovariance</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Covariance.setConfig"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.setConfig">[docs]</a>    <span class="k">def</span> <span class="nf">setConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets and updated the config of the instance</span>
+
+<span class="sd">        :param config: New config instance, defaults to configuration provided</span>
+<span class="sd">                       by parent :class:`~kite.Scene`</span>
+<span class="sd">        :type config: :class:`~kite.covariance.CovarianceConfig`, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span> <span class="ow">is</span> <span class="kc">None</span>\
+           <span class="ow">and</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">a</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span>
+                <span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span>  <span class="c1"># init data array</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">a</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">b</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">variance</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evConfigChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">spectrum</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">structure_func</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec1d_cached</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec2d_cached</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix_focal</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_func</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix_focal</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nthreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Number of threads (CPU cores) to use for full covariance</span>
+<span class="sd">            calculation</span>
+
+<span class="sd">        Setting ``nthreads`` to ``0`` uses all available cores (default).</span>
+
+<span class="sd">        :setter: Sets the number of threads</span>
+<span class="sd">        :type: int</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nthreads</span>
+
+    <span class="nd">@nthreads</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">nthreads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nthreads</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">noise_coord</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Coordinates of the noise patch in local coordinates.</span>
+
+<span class="sd">        :setter: Set the noise coordinates</span>
+<span class="sd">        :getter: Get the noise coordinates</span>
+<span class="sd">        :type: :class:`numpy.ndarray`, ``[llE, llN, sizeE, sizeN]``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span>
+
+    <span class="nd">@noise_coord</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">noise_coord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">noise_patch_size_km2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :getter: Noise patch size in :math:`km^2`.</span>
+<span class="sd">        :type: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_coord</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_coord</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">*</span><span class="mf">1e-6</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">75</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Defined noise patch is instably small&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">noise_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Noise data we process to estimate the covariance</span>
+
+<span class="sd">        :setter: Set the noise patch to analyze the covariance.</span>
+<span class="sd">        :getter: If the noise data has not been set manually, we grab data</span>
+<span class="sd">                 through :func:`~kite.Covariance.selectNoiseNode`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_data</span>
+
+    <span class="nd">@noise_data</span><span class="o">.</span><span class="n">getter</span>
+    <span class="k">def</span> <span class="nf">noise_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_data</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Selecting noise_data from config...&#39;</span><span class="p">)</span>
+            <span class="n">llE</span><span class="p">,</span> <span class="n">llN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">mapENMatrix</span><span class="p">(</span>
+                <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">sE</span><span class="p">,</span> <span class="n">sN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">mapENMatrix</span><span class="p">(</span>
+                <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">noise_coord</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+            <span class="n">slice_E</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">llE</span><span class="p">,</span> <span class="n">llE</span> <span class="o">+</span> <span class="n">sE</span><span class="p">)</span>
+            <span class="n">slice_N</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">llN</span><span class="p">,</span> <span class="n">llN</span> <span class="o">+</span> <span class="n">sN</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">displacement</span><span class="p">[</span><span class="n">slice_N</span><span class="p">,</span> <span class="n">slice_E</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Selecting noise_data from Quadtree...&#39;</span><span class="p">)</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectNoiseNode</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">displacement</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">noise_coord</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">llE</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">llN</span><span class="p">,</span>
+                                <span class="n">node</span><span class="o">.</span><span class="n">sizeE</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">sizeN</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span>
+
+    <span class="nd">@noise_data</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">noise_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">derampMatrix</span><span class="p">(</span><span class="n">trimMatrix</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">trimMatrix</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">data</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Covariance.selectNoiseNode"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.selectNoiseNode">[docs]</a>    <span class="k">def</span> <span class="nf">selectNoiseNode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Choose noise node from quadtree</span>
+<span class="sd">        the biggest :class:`~kite.quadtree.QuadNode` from</span>
+<span class="sd">        :class:`~kite.Quadtree`.</span>
+
+<span class="sd">        :returns: A quadnode with the least signal.</span>
+<span class="sd">        :rtype: :class:`~kite.quadtree.QuadNode`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">stdmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">std</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">nodes</span><span class="p">])</span>  <span class="c1"># noqa</span>
+        <span class="n">lmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">n</span><span class="o">.</span><span class="n">std</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">nodes</span><span class="p">])</span>  <span class="c1"># noqa</span>
+
+        <span class="k">def</span> <span class="nf">costFunction</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">nl</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">length</span><span class="p">)</span><span class="o">/</span><span class="n">num</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">lmax</span><span class="p">)</span>
+            <span class="n">ns</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">std</span><span class="o">/</span><span class="n">stdmax</span>
+            <span class="k">return</span> <span class="n">nl</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">ns</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.</span><span class="o">-</span><span class="n">n</span><span class="o">.</span><span class="n">nan_fraction</span><span class="p">)</span>
+
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span>
+                       <span class="n">key</span><span class="o">=</span><span class="n">costFunction</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Fetched noise from Quadtree.nodes [</span><span class="si">%0.8f</span><span class="s1"> s]&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">_mapLeafs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Helper function returning appropriate</span>
+<span class="sd">            :class:`~kite.quadtree.QuadNode` and for maintaining</span>
+<span class="sd">            the internal mapping with the matrices.</span>
+
+<span class="sd">        :param nx: matrix x position</span>
+<span class="sd">        :type nx: int</span>
+<span class="sd">        :param ny: matrix y position</span>
+<span class="sd">        :type ny: int</span>
+<span class="sd">        :returns: tuple of :class:`~kite.quadtree.QuadNode` s for ``nx``</span>
+<span class="sd">            and ``ny``</span>
+<span class="sd">        :rtype: tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">leaf1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">[</span><span class="n">nx</span><span class="p">]</span>
+        <span class="n">leaf2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">[</span><span class="n">ny</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_mapping</span><span class="p">[</span><span class="n">leaf1</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_mapping</span><span class="p">[</span><span class="n">leaf2</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span>
+
+        <span class="k">return</span> <span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">covariance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Covariance matrix calculated from sub-distances pairs from quadtree</span>
+<span class="sd">            node-to-node.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs` x</span>
+<span class="sd">            :class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span>\
+                <span class="bp">self</span><span class="o">.</span><span class="n">_calcCovarianceMatrix</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;full&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">nl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">nleafs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span> <span class="o">=</span>\
+                    <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nl</span><span class="p">,</span> <span class="n">nl</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance_matrix</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">covariance_matrix_focal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This matrix uses distances between focal points. Fast but</span>
+<span class="sd">            statistically not reliable method. For final approach use</span>
+<span class="sd">            :attr:`~kite.Covariance.covariance_matrix`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs` x</span>
+<span class="sd">            :class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calcCovarianceMatrix</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;focal&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">weight_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weight matrix from full covariance :math:`\\sqrt{cov^{-1}}`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs` x</span>
+<span class="sd">            :class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">)</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">weight_matrix_focal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weight matrix from fast focal method</span>
+<span class="sd">            :math:`\\sqrt{cov_{focal}^{-1}}`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs` x</span>
+<span class="sd">            :class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix_focal</span><span class="p">)</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">weight_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weight vector from full covariance :math:`\\sqrt{cov^{-1}}`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">weight_vector_focal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weight vector from fast focal method</span>
+<span class="sd">            :math:`\\sqrt{cov_{focal}^{-1}}`.</span>
+<span class="sd">        :type: :class:`numpy.ndarray`,</span>
+<span class="sd">            size (:class:`~kite.Quadtree.nleafs`)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix_focal</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_calcCovarianceMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;focal&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculates the covariance matrix.</span>
+
+<span class="sd">        :param method: Either ``focal`` point distances are used - this is</span>
+<span class="sd">            quick but statistically not reliable.</span>
+<span class="sd">            Or ``full``, where the full quadtree pixel distances matrices are</span>
+<span class="sd">            calculated</span>
+<span class="sd">            , defaults to ``focal``</span>
+<span class="sd">        :type method: str, optional</span>
+<span class="sd">        :returns: Covariance matrix</span>
+<span class="sd">        :rtype: thon:numpy.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">nl</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_mapping</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">ma</span><span class="p">,</span> <span class="n">mb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_model</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;focal&#39;</span><span class="p">:</span>
+            <span class="n">dist_matrix</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nl</span><span class="p">,</span> <span class="n">nl</span><span class="p">))</span>
+            <span class="n">dist_iter</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">triu_indices_from</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span> <span class="ow">in</span> <span class="n">dist_iter</span><span class="p">:</span>
+                <span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapLeafs</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">)</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leafFocalDistance</span><span class="p">(</span><span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span><span class="p">)</span>
+                <span class="n">dist_matrix</span><span class="p">[(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">),</span> <span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">)]</span> <span class="o">=</span> <span class="n">dist</span>
+            <span class="n">cov_matrix</span> <span class="o">=</span> <span class="n">modelCovariance</span><span class="p">(</span><span class="n">dist_matrix</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">mb</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;full&#39;</span><span class="p">:</span>
+            <span class="n">leaf_map</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                                 <span class="n">dtype</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nl</span><span class="p">,</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">):</span>
+                <span class="n">leaf</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapLeafs</span><span class="p">(</span><span class="n">nl</span><span class="p">,</span> <span class="n">nl</span><span class="p">)</span>
+                <span class="n">leaf_map</span><span class="p">[</span><span class="n">nl</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">leaf_map</span><span class="p">[</span><span class="n">nl</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">_slice_rows</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">leaf</span><span class="o">.</span><span class="n">_slice_rows</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+                <span class="n">leaf_map</span><span class="p">[</span><span class="n">nl</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">leaf_map</span><span class="p">[</span><span class="n">nl</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">_slice_cols</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                                                    <span class="n">leaf</span><span class="o">.</span><span class="n">_slice_cols</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+
+            <span class="n">nleafs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">nleafs</span>
+            <span class="n">cov_matrix</span> <span class="o">=</span> <span class="n">covariance_ext</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">gridE</span><span class="o">.</span><span class="n">filled</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">gridN</span><span class="o">.</span><span class="n">filled</span><span class="p">(),</span>
+                            <span class="n">leaf_map</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="n">mb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">adaptive_subsampling</span><span class="p">)</span>\
+                <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nleafs</span><span class="p">,</span> <span class="n">nleafs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Covariance calculation </span><span class="si">%s</span><span class="s1"> method not defined!&#39;</span>
+                            <span class="o">%</span> <span class="n">method</span><span class="p">)</span>
+
+        <span class="n">num</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">cov_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Created covariance matrix - </span><span class="si">%s</span><span class="s1"> mode [</span><span class="si">%0.8f</span><span class="s1"> s]&#39;</span> <span class="o">%</span>
+                        <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cov_matrix</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_leafFocalDistance</span><span class="p">(</span><span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">leaf1</span><span class="o">.</span><span class="n">focal_point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                         <span class="o">-</span> <span class="n">leaf2</span><span class="o">.</span><span class="n">focal_point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
+                        <span class="p">(</span><span class="n">leaf1</span><span class="o">.</span><span class="n">focal_point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                         <span class="o">-</span> <span class="n">leaf2</span><span class="o">.</span><span class="n">focal_point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_leafMapping</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf1</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">leaf1</span> <span class="o">=</span> <span class="n">leaf1</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf2</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">leaf2</span> <span class="o">=</span> <span class="n">leaf2</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix_focal</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_mapping</span><span class="p">[</span><span class="n">leaf1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_mapping</span><span class="p">[</span><span class="n">leaf2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Unknown quadtree leaf with id </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Covariance.getLeafCovariance"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.getLeafCovariance">[docs]</a>    <span class="k">def</span> <span class="nf">getLeafCovariance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the covariance between ``leaf1`` and ``leaf2``.</span>
+
+<span class="sd">        :param leaf1: Leaf one</span>
+<span class="sd">        :type leaf1: str of `leaf.id` or :class:`~kite.quadtree.QuadNode`</span>
+<span class="sd">        :param leaf2: Leaf two</span>
+<span class="sd">        :type leaf2: str of `leaf.id` or :class:`~kite.quadtree.QuadNode`</span>
+<span class="sd">        :returns: Covariance between ``leaf1`` and ``leaf2``</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_matrix</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_leafMapping</span><span class="p">(</span><span class="n">leaf1</span><span class="p">,</span> <span class="n">leaf2</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Covariance.getLeafWeight"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.getLeafWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getLeafWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="s1">&#39;focal&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Get the absolute weight of ``leaf``, summation of all weights from</span>
+<span class="sd">        :attr:`kite.Covariance.weight_matrix`</span>
+
+<span class="sd">        .. math ::</span>
+
+<span class="sd">            w_{x} = \\sum_i W_{x,i}</span>
+
+<span class="sd">        :param model: ``Focal`` or ``full``, default ``focal``</span>
+<span class="sd">        :type model: str</span>
+<span class="sd">        :param leaf: A leaf from :class:`~kite.Quadtree`</span>
+<span class="sd">        :type leaf: :class:`~kite.quadtree.QuadNode`</span>
+
+<span class="sd">        :returns: Weight of the leaf</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="p">(</span><span class="n">nl</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leafMapping</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">leaf</span><span class="p">)</span>
+        <span class="n">weight_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix_focal</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">weight_mat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="n">nl</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Covariance.syntheticNoise"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.syntheticNoise">[docs]</a>    <span class="k">def</span> <span class="nf">syntheticNoise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dEdN</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">anisotropic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create random synthetic noise with the same character as defined</span>
+<span class="sd">            in :attr:`noise_data`.</span>
+
+<span class="sd">        This function uses the powerspectrum of the empirical noise</span>
+<span class="sd">        (:func:`powerspecNoise`) to create synthetic noise for model</span>
+<span class="sd">        pertubation. The default sampling distances are taken from</span>
+<span class="sd">        :attr:`kite.scene.Frame.dE` and :attr:`kite.scene.Frame.dN`. And can be</span>
+<span class="sd">        overwritten.</span>
+<span class="sd">        :param shape: shape of the desired noise patch.</span>
+<span class="sd">            Pixels in northing and easting (`nE`, `nN`),</span>
+<span class="sd">            defaults to `(1024, 1024)`.</span>
+<span class="sd">        :type shape: tuple, optional</span>
+<span class="sd">        :param dEdN: The sampling distance in easting, defaults to</span>
+<span class="sd">            (:attr:`kite.scene.Frame.dE`, :attr:`kite.scene.Frame.dN`).</span>
+<span class="sd">        :type dE: tuple, floats</span>
+<span class="sd">        :returns: Noise patch</span>
+<span class="sd">        :rtype: :class:`numpy.ndarray`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># self._log.warning(&#39;Patch dimensions must be even, &#39;</span>
+            <span class="c1">#                   &#39;ceiling dimensions!&#39;)</span>
+            <span class="k">pass</span>
+        <span class="n">nE</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">nN</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">rfield</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">nE</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">rfield</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dEdN</span><span class="p">:</span>
+            <span class="n">dE</span><span class="p">,</span> <span class="n">dN</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dN</span><span class="p">)</span>
+        <span class="n">kE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">nE</span><span class="p">,</span> <span class="n">dE</span><span class="p">)</span>
+        <span class="n">kN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">dN</span><span class="p">)</span>
+        <span class="n">k_rad</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">kN</span><span class="p">[:,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">kE</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">amp</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">k_rad</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">anisotropic</span><span class="p">:</span>
+            <span class="n">noise_pspec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise2D</span><span class="p">()</span>
+            <span class="n">k_bin</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">k_min</span> <span class="o">=</span> <span class="n">k_bin</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">k_max</span> <span class="o">=</span> <span class="n">k_bin</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">k_rad</span> <span class="o">&gt;</span> <span class="n">k_min</span><span class="p">,</span> <span class="n">k_rad</span> <span class="o">&lt;=</span> <span class="n">k_max</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">r</span> <span class="o">=</span> <span class="n">k_rad</span> <span class="o">&gt;</span> <span class="n">k_min</span>
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">amp</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="n">noise_pspec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">amp</span><span class="p">[</span><span class="n">k_rad</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">variance</span>
+            <span class="n">amp</span><span class="p">[</span><span class="n">k_rad</span> <span class="o">&gt;</span> <span class="n">k</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span> <span class="o">=</span> <span class="n">noise_pspec</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">amp</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span><span class="o">.</span><span class="n">saaaize</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">anisotropic</span><span class="p">:</span>
+            <span class="n">interp_pspec</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">skE</span><span class="p">,</span> <span class="n">skN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise3D</span><span class="p">()</span>
+            <span class="n">kE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">kE</span><span class="p">)</span>
+            <span class="n">kN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">kN</span><span class="p">)</span>
+            <span class="n">mkE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">kE</span> <span class="o">&gt;=</span> <span class="n">skE</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">kE</span> <span class="o">&lt;=</span> <span class="n">skE</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">mkN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">kN</span> <span class="o">&gt;=</span> <span class="n">skN</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">kN</span> <span class="o">&lt;=</span> <span class="n">skN</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+            <span class="n">mkRad</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>  <span class="c1"># noqa</span>
+                <span class="n">k_rad</span> <span class="o">&lt;</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">kN</span><span class="p">[</span><span class="n">mkN</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">kE</span><span class="p">[</span><span class="n">mkE</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">interp_pspec</span><span class="p">(</span><span class="n">kN</span><span class="p">[</span><span class="n">mkN</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                               <span class="n">kE</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">mkE</span><span class="p">],</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="n">amp</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">shape</span>
+            <span class="nb">print</span> <span class="n">kN</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">kE</span><span class="o">.</span><span class="n">size</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="n">res</span>
+            <span class="n">amp</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">amp</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="n">amp</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">amp</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+        <span class="n">spec</span> <span class="o">*=</span> <span class="n">amp</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+        <span class="n">noise</span> <span class="o">-=</span> <span class="n">num</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">noise</span></div>
+
+    <span class="k">def</span> <span class="nf">powerspecNoise1D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndeg</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">nk</span><span class="o">=</span><span class="mi">512</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec1d_cached</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec1d_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspecNoise</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;1d&#39;</span><span class="p">,</span> <span class="n">ndeg</span><span class="o">=</span><span class="n">ndeg</span><span class="p">,</span> <span class="n">nk</span><span class="o">=</span><span class="n">nk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec1d_cached</span>
+
+    <span class="k">def</span> <span class="nf">powerspecNoise2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ndeg</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">nk</span><span class="o">=</span><span class="mi">512</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec2d_cached</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec2d_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspecNoise</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="n">ndeg</span><span class="o">=</span><span class="n">ndeg</span><span class="p">,</span> <span class="n">nk</span><span class="o">=</span><span class="n">nk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec2d_cached</span>
+
+    <span class="k">def</span> <span class="nf">powerspecNoise3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec3d_cached</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec3d_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspecNoise</span><span class="p">(</span>
+                <span class="n">data</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspec3d_cached</span>
+
+    <span class="k">def</span> <span class="nf">_powerspecNoise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;1d&#39;</span><span class="p">,</span> <span class="n">ndeg</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">nk</span><span class="o">=</span><span class="mi">512</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the noise spectrum from</span>
+<span class="sd">        :attr:`kite.Covariance.noise_data`.</span>
+
+<span class="sd">        :param data: Overwrite Covariance.noise_data, defaults to `None`</span>
+<span class="sd">        :type data: :class:`numpy.ndarray`, optional</span>
+<span class="sd">        :returns: `(power_spec, k, f_spectrum, kN, kE)`</span>
+<span class="sd">        :rtype: tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">noise</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">norm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;1d&#39;</span><span class="p">,</span> <span class="s1">&#39;2d&#39;</span><span class="p">,</span> <span class="s1">&#39;3d&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;norm must be either 1d, 2d or 3d&#39;</span><span class="p">)</span>
+
+        <span class="c1"># noise = squareMatrix(noise)</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span>
+
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">shift</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+        <span class="n">power_spec</span> <span class="o">=</span> <span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spectrum</span><span class="p">)</span><span class="o">/</span><span class="n">spectrum</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+
+        <span class="n">kE</span> <span class="o">=</span> <span class="n">shift</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">power_spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                   <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dE</span><span class="p">))</span>
+        <span class="n">kN</span> <span class="o">=</span> <span class="n">shift</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftfreq</span><span class="p">(</span><span class="n">power_spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                   <span class="n">d</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dN</span><span class="p">))</span>
+        <span class="n">k_rad</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">kN</span><span class="p">[:,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">kE</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">power_spec</span><span class="p">[</span><span class="n">k_rad</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+
+        <span class="n">power_interp</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">RectBivariateSpline</span><span class="p">(</span><span class="n">kN</span><span class="p">,</span> <span class="n">kE</span><span class="p">,</span> <span class="n">power_spec</span><span class="p">)</span>
+
+        <span class="c1"># def power1d(k):</span>
+        <span class="c1">#     theta = num.linspace(-num.pi, num.pi, ndeg, False)</span>
+        <span class="c1">#     power = num.empty_like(k)</span>
+        <span class="c1">#     for i in xrange(k.size):</span>
+        <span class="c1">#         kE = num.cos(theta) * k[i]</span>
+        <span class="c1">#         kN = num.sin(theta) * k[i]</span>
+        <span class="c1">#         power[i] = num.median(power_interp.ev(kN, kE)) * k[i]\</span>
+        <span class="c1">#             * num.pi * 4</span>
+        <span class="c1">#     return power</span>
+
+        <span class="k">def</span> <span class="nf">power1d</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">ndeg</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">kE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">kN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">power</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">power_interp</span><span class="o">.</span><span class="n">ev</span><span class="p">(</span><span class="n">kN</span><span class="p">,</span> <span class="n">kE</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">power</span>
+
+        <span class="k">def</span> <span class="nf">power2d</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Mean 2D Power works! &quot;&quot;&quot;</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">ndeg</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">kE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">kN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">power</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">power_interp</span><span class="o">.</span><span class="n">ev</span><span class="p">(</span><span class="n">kN</span><span class="p">,</span> <span class="n">kE</span><span class="p">))</span>
+                <span class="c1"># Median is more stable than the mean here</span>
+            <span class="k">return</span> <span class="n">power</span>
+
+        <span class="k">def</span> <span class="nf">power3d</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">power_interp</span>
+
+        <span class="n">power</span> <span class="o">=</span> <span class="n">power1d</span>
+        <span class="k">if</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;2d&#39;</span><span class="p">:</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="n">power2d</span>
+        <span class="k">elif</span> <span class="n">norm</span> <span class="o">==</span> <span class="s1">&#39;3d&#39;</span><span class="p">:</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="n">power3d</span>
+
+        <span class="n">k_rad</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">kN</span><span class="p">[:,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">kE</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">k_rad</span><span class="p">[</span><span class="n">k_rad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                         <span class="n">k_rad</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">nk</span><span class="p">)</span>
+        <span class="n">dk</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">k</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">nk</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">power</span><span class="p">(</span><span class="n">k</span><span class="p">),</span> <span class="n">k</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">kE</span><span class="p">,</span> <span class="n">kN</span>
+
+        <span class="c1"># def power1Ddisc():</span>
+        <span class="c1">#     self._log.info(&#39;Using discrete summation&#39;)</span>
+        <span class="c1">#     ps = power_spec</span>
+        <span class="c1">#     d = num.abs(num.arange(-ps.shape[0]/2,</span>
+        <span class="c1">#                            ps.shape[0]/2))</span>
+        <span class="c1">#     rm = num.sqrt(d[:, num.newaxis]**2 + d[num.newaxis, :]**2)</span>
+
+        <span class="c1">#     axis = num.argmax(ps.shape)</span>
+        <span class="c1">#     k_ref = kN if axis == 0 else kE</span>
+        <span class="c1">#     p = num.empty(ps.shape[axis]/2)</span>
+        <span class="c1">#     k = num.empty(ps.shape[axis]/2)</span>
+        <span class="c1">#     for r in xrange(ps.shape[axis]/2):</span>
+        <span class="c1">#         mask = num.logical_and(rm &gt;= r-.5, rm &lt; r+.5)</span>
+        <span class="c1">#         k[r] = k_ref[(k_ref.size/2)+r]</span>
+        <span class="c1">#         p[r] = num.median(ps[mask]) * 4 * num.pi</span>
+        <span class="c1">#     return p, k</span>
+
+        <span class="c1"># power, k = power1Ddisc()</span>
+        <span class="c1"># dk = k[1] - k[0]</span>
+        <span class="c1"># return power, k, dk, spectrum, kE, kN</span>
+
+    <span class="k">def</span> <span class="nf">_powerspecFit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">power_spec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">selectRegime</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">k1</span><span class="p">,</span> <span class="n">k2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">k</span> <span class="o">&gt;</span> <span class="n">k1</span><span class="p">,</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">k2</span><span class="p">)</span>
+
+        <span class="n">regime</span> <span class="o">=</span> <span class="n">selectRegime</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">noise_regimes</span><span class="p">[</span><span class="n">regime</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="n">modelPowerspec</span><span class="p">,</span>
+                                         <span class="n">k</span><span class="p">[</span><span class="n">regime</span><span class="p">],</span> <span class="n">power_spec</span><span class="p">[</span><span class="n">regime</span><span class="p">],</span>
+                                         <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">variance</span><span class="p">,</span> <span class="mi">2000</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not fit the powerspectrum model.&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="mf">0.</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">powerspec_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Powerspectrum model parameters based on the spectral model after</span>
+<span class="sd">        :func:`~kite.covariance.modelPowerspec`</span>
+
+<span class="sd">        :returns: Model parameters ``a`` and ``b``</span>
+<span class="sd">        :rtype: tuple, floats</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerspecFit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">p</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">powerspec_model_rms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :getter: RMS missfit between :class:`~kite.Covariance.powerspecNoise1D`</span>
+<span class="sd">            and :class:`~kite.Covariance.powerspec_model``</span>
+<span class="sd">        :type: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">power_spec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+        <span class="n">power_spec_mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecModel</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">power_spec</span> <span class="o">-</span> <span class="n">power_spec_mod</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Covariance.powerspecModel"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.powerspecModel">[docs]</a>    <span class="k">def</span> <span class="nf">powerspecModel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Calculates the analytical power based on the fit of</span>
+<span class="sd">        :func:`~kite.covariance.powerspec_model`.</span>
+
+<span class="sd">        :param k: Wavenumber(s)</span>
+<span class="sd">        :type k: float or :class:`numpy.ndarray`</span>
+<span class="sd">        :returns: Power at wavenumber ``k``</span>
+<span class="sd">        :rtype: float or :class:`numpy.ndarray`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspec_model</span>
+        <span class="k">return</span> <span class="n">modelPowerspec</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">p</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_powerCosineTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_spec</span><span class="p">):</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">fftpack</span><span class="o">.</span><span class="n">idct</span><span class="p">(</span><span class="n">p_spec</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cos</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">covariance_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Covariance function derived from powerspectrum of</span>
+<span class="sd">            displacement noise patch.</span>
+<span class="sd">        :type: tuple, :class:`numpy.ndarray` (covariance, distance) &#39;&#39;&#39;</span>
+        <span class="n">power_spec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+        <span class="c1"># power_spec -= self.variance</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">power_spec</span><span class="o">.</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dk</span>
+        <span class="n">cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerCosineTransform</span><span class="p">(</span><span class="n">power_spec</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cov</span><span class="p">,</span> <span class="n">d</span>
+
+<div class="viewcode-block" id="Covariance.covarianceAnalytical"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.covarianceAnalytical">[docs]</a>    <span class="k">def</span> <span class="nf">covarianceAnalytical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Analytical covariance based on the spectral model fit</span>
+<span class="sd">        from :func:`~kite.covariance.modelPowerspec`</span>
+
+<span class="sd">        :return: Covariance and corresponding distances.</span>
+<span class="sd">        :rtype: tuple, :class:`numpy.ndarray` (covariance_analytical, distance)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">kN</span><span class="p">,</span> <span class="n">kE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspec_model</span>
+
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">modelPowerspec</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dk</span>
+
+        <span class="n">cos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_powerCosineTransform</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cos</span><span class="p">,</span> <span class="n">d</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">covariance_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regime</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Covariance model parameters for</span>
+<span class="sd">        :func:`~kite.covariance.modelCovariance` retrieved</span>
+<span class="sd">        from :attr:`~kite.Covariance.covarianceAnalytical`.</span>
+
+<span class="sd">        :getter: Get the parameters.</span>
+<span class="sd">        :type: tuple, ``a`` and ``b``</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cov</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covarianceAnalytical</span><span class="p">(</span><span class="n">regime</span><span class="p">)</span>
+            <span class="n">cov</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_func</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">_</span> <span class="o">=</span>\
+                    <span class="n">sp</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="n">modelCovariance</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">cov</span><span class="p">,</span>
+                                          <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="o">.</span><span class="mi">001</span><span class="p">,</span> <span class="mf">500.</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not fit the covariance model&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1000.</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">b</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">covariance_model_rms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :getter: RMS missfit between :class:`~kite.Covariance.covariance_model`</span>
+<span class="sd">            and :class:`~kite.Covariance.covariance_func`</span>
+<span class="sd">        :type: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">cov</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_func</span>
+        <span class="n">cov_mod</span> <span class="o">=</span> <span class="n">modelCovariance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">cov</span> <span class="o">-</span> <span class="n">cov_mod</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">structure_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Structure function derived from ``noise_patch``</span>
+<span class="sd">        :type: tuple, :class:`numpy.ndarray` (structure_func, distance)</span>
+
+<span class="sd">        Adapted from</span>
+<span class="sd">        http://clouds.eos.ubc.ca/~phil/courses/atsc500/docs/strfun.pdf</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">power_spec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">power_spec</span><span class="o">.</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">dk</span>
+
+        <span class="k">def</span> <span class="nf">structure_func</span><span class="p">(</span><span class="n">power_spec</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+            <span class="n">struc_func</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">ik</span><span class="p">,</span> <span class="n">tk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+                    <span class="c1"># struc_func[i] += (1. - num.cos(tk*d))*power_spec[ik]</span>
+                    <span class="n">struc_func</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">sp</span><span class="o">.</span><span class="n">special</span><span class="o">.</span><span class="n">j0</span><span class="p">(</span><span class="n">tk</span><span class="o">*</span><span class="n">d</span><span class="p">))</span><span class="o">*</span><span class="n">power_spec</span><span class="p">[</span><span class="n">ik</span><span class="p">]</span>
+            <span class="n">struc_func</span> <span class="o">*=</span> <span class="mf">2.</span><span class="o">/</span><span class="mi">1</span>
+            <span class="k">return</span> <span class="n">struc_func</span>
+
+        <span class="n">struc_func</span> <span class="o">=</span> <span class="n">structure_func</span><span class="p">(</span><span class="n">power_spec</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">struc_func</span><span class="p">,</span> <span class="n">d</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Variance, derived from the mean of</span>
+<span class="sd">        :attr:`~kite.Covariance.structure_func`.</span>
+
+<span class="sd">        :setter: Set the variance manually</span>
+<span class="sd">        :getter: Retrieve the variance</span>
+<span class="sd">        :type: float</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span>
+
+    <span class="nd">@variance</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">spectrum</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+    <span class="nd">@variance</span><span class="o">.</span><span class="n">getter</span>
+    <span class="k">def</span> <span class="nf">variance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">power_spec</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dk</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">powerspecNoise1D</span><span class="p">()</span>
+            <span class="n">cov</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_func</span>
+            <span class="c1"># print cov[1]</span>
+            <span class="n">ps</span> <span class="o">=</span> <span class="n">power_spec</span> <span class="o">*</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">size</span>
+            <span class="c1"># print spectrum.size</span>
+            <span class="c1"># print num.mean(ps[-int(ps.size/9.):-1])</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">ps</span><span class="o">.</span><span class="n">size</span><span class="o">/</span><span class="mf">9.</span><span class="p">):])</span> <span class="o">+</span> <span class="n">cov</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">variance</span>
+
+<div class="viewcode-block" id="Covariance.export_weight_matrix"><a class="viewcode-back" href="../../kite.covariance.html#kite.Covariance.export_weight_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">export_weight_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Export the full :attr:`~kite.Covariance.weight_matrix` to an ASCII</span>
+<span class="sd">        file. The data can be loaded through :func:`numpy.loadtxt`.</span>
+
+<span class="sd">        :param filename: path to export to</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Exporting Covariance.weight_matrix to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;Exported kite.Covariance.weight_matrix, &#39;</span>\
+                 <span class="s1">&#39;for more information visit http://pyrocko.com</span><span class="se">\n</span><span class="s1">&#39;</span>\
+                 <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">The matrix is symmetric and ordered by QuadNode.id:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">header</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+        <span class="n">num</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_matrix</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">)</span></div>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Simple overview plot to summarize the covariance. &#39;&#39;&#39;</span>
+        <span class="kn">from</span> <span class="nn">kite.plot2d</span> <span class="k">import</span> <span class="n">CovariancePlot</span>
+        <span class="k">return</span> <span class="n">CovariancePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Scene Module &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The Quadtree Module" href="kite.quadtree.html" />
+    <link rel="prev" title="Module Reference" href="modules.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="modules.html" accesskey="U">Module Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-scene-module">
+<h1>The Scene Module<a class="headerlink" href="#the-scene-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="kite.Scene">
+<em class="property">class </em><code class="descclassname">kite.</code><code class="descname">Scene</code><span class="sig-paren">(</span><em>config=&lt;kite.scene.SceneConfig object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Scene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Scene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scene holding satellite LOS ground dispacements measurements</p>
+<dl class="attribute">
+<dt id="kite.Scene.covariance">
+<code class="descname">covariance</code><a class="headerlink" href="#kite.Scene.covariance" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Instanciates the scene&#8217;s covariance attribute.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">kite.covariance.Covariance</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.displacement">
+<code class="descname">displacement</code><a class="headerlink" href="#kite.Scene.displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Geodetical displacement in <em>meter</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Set the unwrapped InSAR displacement.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Return the displacement matrix.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, <code class="docutils literal"><span class="pre">NxM</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.displacement_mask">
+<code class="descname">displacement_mask</code><a class="headerlink" href="#kite.Scene.displacement_mask" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Displacement <code class="xref py py-attr docutils literal"><span class="pre">numpy.nan</span></code> mask</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, dtype <code class="xref py py-class docutils literal"><span class="pre">numpy.bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="kite.Scene.import_data">
+<em class="property">static </em><code class="descname">import_data</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kite.Scene.import_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import displacement data from foreign file format.</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param path:</th><td class="field-body">Filename of resource to import</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type path:</th><td class="field-body">str</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param kwargs:</th><td class="field-body">keyword arguments passed to import function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type kwargs:</th><td class="field-body">dict</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">returns:</th><td class="field-body">Scene from path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">rtype:</th><td class="field-body"><a class="reference internal" href="#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">raises:</th><td class="field-body">TypeError</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Supported import modules are <strong>Gamma, Matlab, ISCE, GMTSAR, ROI_PAC</strong>.</p>
+<p><strong>Gamma</strong></p>
+<blockquote>
+<div><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Data has to be georeferenced to latitude/longitude or UTM!</p>
+</div>
+<p>Expects two files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Binary file from Gamma (<code class="file docutils literal"><span class="pre">*</span></code>) with displacement in radians.
+Displacements are translated to meters using the <cite>radar_frequency</cite>
+in [Hz] is given in the <code class="file docutils literal"><span class="pre">*.par</span></code> file.</li>
+<li>Parameter file (<code class="file docutils literal"><span class="pre">*par</span></code>) describing <cite>corner_lat, corner_lon,
+nlines, width, post_lat, post_lon</cite>
+or <cite>&#8216;post_north&#8217;, &#8216;post_east&#8217;, &#8216;corner_east&#8217;,
+&#8216;corner_north&#8217;, &#8216;nlines&#8217;, &#8216;width&#8217;</cite></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>Matlab</strong></p>
+<blockquote>
+<div><p>Variable naming conventions for Matlab <code class="file docutils literal"><span class="pre">.mat</span></code> container:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="53%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Property</th>
+<th class="head">Matlab <code class="docutils literal"><span class="pre">.mat</span></code> name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Scene.displacement</td>
+<td><code class="docutils literal"><span class="pre">ig_</span></code></td>
+</tr>
+<tr class="row-odd"><td>Scene.phi</td>
+<td><code class="docutils literal"><span class="pre">phi</span></code></td>
+</tr>
+<tr class="row-even"><td>Scene.theta</td>
+<td><code class="docutils literal"><span class="pre">theta</span></code></td>
+</tr>
+<tr class="row-odd"><td>Scene.frame.x</td>
+<td><code class="docutils literal"><span class="pre">xx</span></code></td>
+</tr>
+<tr class="row-even"><td>Scene.frame.y</td>
+<td><code class="docutils literal"><span class="pre">yy</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Displacement is expected to be in meters.</p>
+</div></blockquote>
+<p><strong>ISCE</strong></p>
+<blockquote>
+<div><p>Expects three files in the same folder:</p>
+<blockquote>
+<div><blockquote>
+<div><ul class="simple">
+<li>Unwrapped displacement binary (<code class="file docutils literal"><span class="pre">*.unw.geo</span></code>)</li>
+<li>Metadata XML (<code class="file docutils literal"><span class="pre">*.unw.geo.xml</span></code>)</li>
+<li>LOS binary data (<code class="file docutils literal"><span class="pre">*.rdr.geo</span></code>)</li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">data are in radians but no transformation to
+meters yet, as &#8216;wavelength&#8217; or at least sensor name is not
+provided in the XML file.</p>
+</div>
+</div></blockquote>
+</div></blockquote>
+<p><strong>GMTSAR</strong></p>
+<blockquote>
+<div><p>Use gmt5sar <code class="docutils literal"><span class="pre">SAT_look</span></code> to calculate the corresponding unit look vectors:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>gmt grd2xyz unwrap_ll.grd <span class="p">|</span> gmt grdtrack -Gdem.grd <span class="p">|</span>
+awk <span class="o">{</span><span class="s1">&#39;print $1, $2, $4&#39;</span><span class="o">}</span> <span class="p">|</span>
+SAT_look <span class="m">20050731</span>.PRM -bos &gt; <span class="m">20050731</span>.los.enu
+</pre></div>
+</div>
+<p>Expects two binary files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Displacement grid (NetCDF, <code class="file docutils literal"><span class="pre">*los_ll.grd</span></code>) in cm
+(get transformed to meters)</li>
+<li>LOS binary data (see instruction, <code class="file docutils literal"><span class="pre">*los.enu</span></code>)</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+<p><strong>ROI_PAC</strong></p>
+<blockquote>
+<div><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Data has to be georeferenced to latitude/longitude!</p>
+</div>
+<p>The unwrapped displacement is expected in radians and will be scaled
+to meters by <cite>WAVELENGTH</cite> parsed from the <code class="file docutils literal"><span class="pre">*.rsc</span></code> file.</p>
+<p>Expects two files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Binary file from ROI_PAC (<code class="file docutils literal"><span class="pre">*</span></code>)</li>
+<li>Parameter file (<code class="file docutils literal"><span class="pre">&lt;binary_file&gt;.rsc</span></code>)
+describing <code class="docutils literal"><span class="pre">'WIDTH',</span> <span class="pre">'FILE_LENGTH',</span> <span class="pre">'X_FIRST',</span> <span class="pre">'Y_FIRST',</span> <span class="pre">'X_STEP',</span>
+<span class="pre">'Y_STEP',</span> <span class="pre">'WAVELENGTH</span></code></li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="kite.Scene.load">
+<em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#kite.Scene.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a kite scene from file <code class="docutils literal"><span class="pre">filename.[npz,yml]</span></code>
+structure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) &#8211; Filenames the scene data is saved under</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Scene object from data resources</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.phi">
+<code class="descname">phi</code><a class="headerlink" href="#kite.Scene.phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontal angle towards satellite&#8217; <abbr title="LOS">line of sight</abbr>
+in radians</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Kite convention is:</p>
+<ul class="last simple">
+<li><img class="math" src="_images/math/532f3248d6552e7ac6b785bd935f404ad593e6a9.svg" alt="0"/> is <strong>East</strong></li>
+<li><img class="math" src="_images/math/8682efc566ec991e274a96086f79643e45fc5cab.svg" alt="\frac{\pi}{2}"/> is <strong>North</strong>!</li>
+</ul>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Set the phi matrix for scene&#8217;s displacement, can be int
+for static look vector.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size same as
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a> or int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.phiDeg">
+<code class="descname">phiDeg</code><a class="headerlink" href="#kite.Scene.phiDeg" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> LOS incident angle in degree, <code class="docutils literal"><span class="pre">NxM</span></code> matrix like
+<a class="reference internal" href="#kite.Scene.theta" title="kite.Scene.theta"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene.theta</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.plot">
+<code class="descname">plot</code><a class="headerlink" href="#kite.Scene.plot" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Shows a simple plot of the scene&#8217;s displacement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.quadtree">
+<code class="descname">quadtree</code><a class="headerlink" href="#kite.Scene.quadtree" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Instanciates the scene&#8217;s quadtree.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">kite.quadtree.Quadtree</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Scene.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Scene.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Scene.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save kite scene to kite file structure</p>
+<p>Saves the current scene meta information and UTM frame to a YAML
+(<code class="docutils literal"><span class="pre">.yml</span></code>) file. Numerical data (<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a>,
+<a class="reference internal" href="#kite.Scene.theta" title="kite.Scene.theta"><code class="xref py py-attr docutils literal"><span class="pre">theta</span></code></a> and <a class="reference internal" href="#kite.Scene.phi" title="kite.Scene.phi"><code class="xref py py-attr docutils literal"><span class="pre">phi</span></code></a>)
+are saved as binary files from <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; Filenames to save scene to, defaults to
+&#8216; <code class="xref py py-attr docutils literal"><span class="pre">scene_id</span></code> <code class="docutils literal"><span class="pre">_</span></code>
+<code class="xref py py-attr docutils literal"><span class="pre">scene_view</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Scene.spool">
+<code class="descname">spool</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Scene.spool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Scene.spool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start the spool user interface <a class="reference internal" href="kite.spool.html#kite.spool.Spool" title="kite.spool.Spool"><code class="xref py py-class docutils literal"><span class="pre">Spool</span></code></a> to inspect
+the scene.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.theta">
+<code class="descname">theta</code><a class="headerlink" href="#kite.Scene.theta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Theta is look vector elevation angle towards satellite from horizon
+in radians. Matrix of theta towards satellite&#8217;s
+<abbr title="LOS">line of sight</abbr>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Kite convention!</p>
+<ul class="last simple">
+<li><img class="math" src="_images/math/8121f3592ecb36229102c1638c8d3d1e6e7cb1fe.svg" alt="-\frac{\pi}{2}"/> is <strong>Down</strong></li>
+<li><img class="math" src="_images/math/8682efc566ec991e274a96086f79643e45fc5cab.svg" alt="\frac{\pi}{2}"/> is <strong>Up</strong></li>
+</ul>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Set the theta matrix for scene&#8217;s displacement, can be int
+for static look vector.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size same as
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a> or int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Scene.thetaDeg">
+<code class="descname">thetaDeg</code><a class="headerlink" href="#kite.Scene.thetaDeg" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> LOS incident angle in degree, <code class="docutils literal"><span class="pre">NxM</span></code> matrix like
+<a class="reference internal" href="#kite.Scene.theta" title="kite.Scene.theta"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene.theta</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="the-sceneconfig">
+<h2>The SceneConfig<a class="headerlink" href="#the-sceneconfig" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.scene.SceneConfig">
+<em class="property">class </em><code class="descclassname">kite.scene.</code><code class="descname">SceneConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#SceneConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.SceneConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configuration object, gathering <code class="docutils literal"><span class="pre">kite.Scene</span></code> and
+sub-objects configuration.</p>
+<dl class="gattribute">
+<dt id="SceneConfig.meta">
+<em class="property">♦ </em><code class="descname">meta</code><a class="headerlink" href="#SceneConfig.meta" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">Meta</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">&lt;kite.scene.Meta</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f9ea21f1390&gt;</span></code></p>
+<p>Scene metainformation</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SceneConfig.frame">
+<em class="property">♦ </em><code class="descname">frame</code><a class="headerlink" href="#SceneConfig.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="xref py py-class docutils literal"><span class="pre">FrameConfig</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">&lt;kite.scene.FrameConfig</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f9ea21f13d0&gt;</span></code></p>
+<p>Frame/reference configuration</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SceneConfig.quadtree">
+<em class="property">♦ </em><code class="descname">quadtree</code><a class="headerlink" href="#SceneConfig.quadtree" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadtreeConfig" title="kite.quadtree.QuadtreeConfig"><code class="xref py py-class docutils literal"><span class="pre">kite.quadtree.QuadtreeConfig</span></code></a>, <em>default:</em> <code class="docutils literal"><span class="pre">&lt;kite.quadtree.QuadtreeConfig</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f9ea21f1450&gt;</span></code></p>
+<p>Quadtree parameters</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SceneConfig.covariance">
+<em class="property">♦ </em><code class="descname">covariance</code><a class="headerlink" href="#SceneConfig.covariance" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="kite.covariance.html#kite.covariance.CovarianceConfig" title="kite.covariance.CovarianceConfig"><code class="xref py py-class docutils literal"><span class="pre">kite.covariance.CovarianceConfig</span></code></a>, <em>default:</em> <code class="docutils literal"><span class="pre">&lt;kite.covariance.CovarianceConfig</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f9ea21f14d0&gt;</span></code></p>
+<p>Covariance parameters</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-meta-information-container">
+<h2>The Meta Information Container<a class="headerlink" href="#the-meta-information-container" title="Permalink to this headline">¶</a></h2>
+<p>A <code class="docutils literal"><span class="pre">Scene</span></code> holds several configuration objects:</p>
+<dl class="class">
+<dt id="kite.scene.Meta">
+<em class="property">class </em><code class="descclassname">kite.scene.</code><code class="descname">Meta</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.Meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Meta configuration for <code class="docutils literal"><span class="pre">Scene</span></code>.</p>
+<dl class="gattribute">
+<dt id="Meta.scene_title">
+<em class="property">♦ </em><code class="descname">scene_title</code><a class="headerlink" href="#Meta.scene_title" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">'Undefined'</span></code></p>
+<p>Scene title</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.scene_id">
+<em class="property">♦ </em><code class="descname">scene_id</code><a class="headerlink" href="#Meta.scene_id" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">'None'</span></code></p>
+<p>Scene identification (uid, unused)</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.satellite_name">
+<em class="property">♦ </em><code class="descname">satellite_name</code><a class="headerlink" href="#Meta.satellite_name" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">'Undefined'</span></code></p>
+<p>Satellite mission name</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.wavelength">
+<em class="property">♦ </em><code class="descname">wavelength</code><a class="headerlink" href="#Meta.wavelength" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em></p>
+<p>Wavelength in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.orbit_direction">
+<em class="property">♦ </em><code class="descname">orbit_direction</code><a class="headerlink" href="#Meta.orbit_direction" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.StringChoice</span></code>), <em>default:</em> <code class="docutils literal"><span class="pre">'Undefined'</span></code></p>
+<p>Orbital direction, ascending/descending</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.time_master">
+<em class="property">♦ </em><code class="descname">time_master</code><a class="headerlink" href="#Meta.time_master" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.Timestamp</span></code>), <em>default:</em> <code class="docutils literal"><span class="pre">1481116161.930574</span></code></p>
+<p>Timestamp for master acquisition</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.time_slave">
+<em class="property">♦ </em><code class="descname">time_slave</code><a class="headerlink" href="#Meta.time_slave" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.Timestamp</span></code>), <em>default:</em> <code class="docutils literal"><span class="pre">1482239325.482</span></code></p>
+<p>Timestamp for slave acquisition</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="Meta.extra">
+<em class="property">♦ </em><code class="descname">extra</code><a class="headerlink" href="#Meta.extra" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">dict</span></code> of <code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.Any</span></code> objects, <em>default:</em> <code class="docutils literal"><span class="pre">{}</span></code></p>
+<p>Extra header information</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-frame">
+<h2>The Frame<a class="headerlink" href="#the-frame" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.scene.Frame">
+<em class="property">class </em><code class="descclassname">kite.scene.</code><code class="descname">Frame</code><span class="sig-paren">(</span><em>scene</em>, <em>config=&lt;kite.scene.FrameConfig object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.Frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>UTM frame holding geographical references for <code class="xref py py-class docutils literal"><span class="pre">kite.scene.Scene</span></code></p>
+<dl class="attribute">
+<dt id="kite.scene.Frame.gridE">
+<code class="descname">gridE</code><a class="headerlink" href="#kite.scene.Frame.gridE" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> UTM grid holding eastings of all pixels in <code class="docutils literal"><span class="pre">NxM</span></code> matrix
+of <a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">NxM</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.scene.Frame.gridN">
+<code class="descname">gridN</code><a class="headerlink" href="#kite.scene.Frame.gridN" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> UTM grid holding northings of all pixels in <code class="docutils literal"><span class="pre">NxM</span></code> matrix
+of <a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">NxM</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.scene.Frame.mapENMatrix">
+<code class="descname">mapENMatrix</code><span class="sig-paren">(</span><em>E</em>, <em>N</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Frame.mapENMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.Frame.mapENMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Maps local coordinates (easting and northing) to matrix</dt>
+<dd>row and column</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>E</strong> (<em>float</em>) &#8211; Easting in local coordinates</li>
+<li><strong>N</strong> (<em>float</em>) &#8211; Northing in local coordinates</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Row and column</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple (int), (row, column)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.scene.Frame.mapMatrixEN">
+<code class="descname">mapMatrixEN</code><span class="sig-paren">(</span><em>row</em>, <em>col</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Frame.mapMatrixEN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.Frame.mapMatrixEN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps matrix row, column to local easting and northing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>row</strong> (<em>int</em>) &#8211; Matrix row number</li>
+<li><strong>col</strong> (<em>int</em>) &#8211; Matrix column number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Easting and northing in local coordinates</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple (float), (easting, northing)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.scene.Frame.setENOffset">
+<code class="descname">setENOffset</code><span class="sig-paren">(</span><em>east</em>, <em>north</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#Frame.setENOffset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.Frame.setENOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set scene offsets in local cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>east</strong> (float, <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> or None) &#8211; East offset in [m]</li>
+<li><strong>north</strong> (float, <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a> or None) &#8211; North offset in [m]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="the-frameconfig">
+<h3>The FrameConfig<a class="headerlink" href="#the-frameconfig" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="kite.scene.FrameConfig">
+<em class="property">class </em><code class="descclassname">kite.scene.</code><code class="descname">FrameConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#FrameConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.FrameConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Config object holding <code class="xref py py-class docutils literal"><span class="pre">kite.scene.Scene</span></code> cobfiguration</p>
+<dl class="gattribute">
+<dt id="FrameConfig.llLat">
+<em class="property">♦ </em><code class="descname">llLat</code><a class="headerlink" href="#FrameConfig.llLat" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Scene latitude of lower left corner</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="FrameConfig.llLon">
+<em class="property">♦ </em><code class="descname">llLon</code><a class="headerlink" href="#FrameConfig.llLon" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Scene longitude of lower left corner</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="FrameConfig.dLat">
+<em class="property">♦ </em><code class="descname">dLat</code><a class="headerlink" href="#FrameConfig.dLat" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.001</span></code></p>
+<p>Scene pixel spacing in x direction [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="FrameConfig.dLon">
+<em class="property">♦ </em><code class="descname">dLon</code><a class="headerlink" href="#FrameConfig.dLon" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.001</span></code></p>
+<p>Scene pixel spacing in y direction [deg]</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="the-losunitvectors">
+<h2>The LOSUnitVectors<a class="headerlink" href="#the-losunitvectors" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.scene.LOSUnitVectors">
+<em class="property">class </em><code class="descclassname">kite.scene.</code><code class="descname">LOSUnitVectors</code><span class="sig-paren">(</span><em>scene</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene.html#LOSUnitVectors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene.LOSUnitVectors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decomposed Line Of Sight vectors (LOS) derived from
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a>.</p>
+<dl class="attribute">
+<dt id="kite.scene.LOSUnitVectors.unitE">
+<code class="descname">unitE</code><a class="headerlink" href="#kite.scene.LOSUnitVectors.unitE" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Unit vector in East, <code class="docutils literal"><span class="pre">NxM</span></code> matrix like
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.scene.LOSUnitVectors.unitN">
+<code class="descname">unitN</code><a class="headerlink" href="#kite.scene.LOSUnitVectors.unitN" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Unit vector in North, <code class="docutils literal"><span class="pre">NxM</span></code> matrix like
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.scene.LOSUnitVectors.unitU">
+<code class="descname">unitU</code><a class="headerlink" href="#kite.scene.LOSUnitVectors.unitU" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Unit vector Up, <code class="docutils literal"><span class="pre">NxM</span></code> matrix like
+<a class="reference internal" href="#kite.Scene.displacement" title="kite.Scene.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-kite.scene_io">
+<span id="the-scene-i-o-modules"></span><h2>The Scene I/O Modules<a class="headerlink" href="#module-kite.scene_io" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.scene_io.Gamma">
+<em class="property">class </em><code class="descclassname">kite.scene_io.</code><code class="descname">Gamma</code><span class="sig-paren">(</span><em>scene=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#Gamma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.Gamma" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Data has to be georeferenced to latitude/longitude or UTM!</p>
+</div>
+<p>Expects two files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Binary file from Gamma (<code class="file docutils literal"><span class="pre">*</span></code>) with displacement in radians.
+Displacements are translated to meters using the <cite>radar_frequency</cite>
+in [Hz] is given in the <code class="file docutils literal"><span class="pre">*.par</span></code> file.</li>
+<li>Parameter file (<code class="file docutils literal"><span class="pre">*par</span></code>) describing <cite>corner_lat, corner_lon,
+nlines, width, post_lat, post_lon</cite>
+or <cite>&#8216;post_north&#8217;, &#8216;post_east&#8217;, &#8216;corner_east&#8217;,
+&#8216;corner_north&#8217;, &#8216;nlines&#8217;, &#8216;width&#8217;</cite></li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="kite.scene_io.Gamma.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filename</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#Gamma.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.Gamma.read" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; Gamma software binary file</li>
+<li><strong>par_file</strong> (<em>str</em>) &#8211; Corresponding parameter (<code class="file docutils literal"><span class="pre">*par</span></code>) file.
+(optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Import dictionary</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">dict</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ImportError</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.scene_io.Matlab">
+<em class="property">class </em><code class="descclassname">kite.scene_io.</code><code class="descname">Matlab</code><span class="sig-paren">(</span><em>scene=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#Matlab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.Matlab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variable naming conventions for Matlab <code class="file docutils literal"><span class="pre">.mat</span></code> container:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="53%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Property</th>
+<th class="head">Matlab <code class="docutils literal"><span class="pre">.mat</span></code> name</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Scene.displacement</td>
+<td><code class="docutils literal"><span class="pre">ig_</span></code></td>
+</tr>
+<tr class="row-odd"><td>Scene.phi</td>
+<td><code class="docutils literal"><span class="pre">phi</span></code></td>
+</tr>
+<tr class="row-even"><td>Scene.theta</td>
+<td><code class="docutils literal"><span class="pre">theta</span></code></td>
+</tr>
+<tr class="row-odd"><td>Scene.frame.x</td>
+<td><code class="docutils literal"><span class="pre">xx</span></code></td>
+</tr>
+<tr class="row-even"><td>Scene.frame.y</td>
+<td><code class="docutils literal"><span class="pre">yy</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Displacement is expected to be in meters.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.scene_io.ISCE">
+<em class="property">class </em><code class="descclassname">kite.scene_io.</code><code class="descname">ISCE</code><span class="sig-paren">(</span><em>scene=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#ISCE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.ISCE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expects three files in the same folder:</p>
+<blockquote>
+<div><blockquote>
+<div><ul class="simple">
+<li>Unwrapped displacement binary (<code class="file docutils literal"><span class="pre">*.unw.geo</span></code>)</li>
+<li>Metadata XML (<code class="file docutils literal"><span class="pre">*.unw.geo.xml</span></code>)</li>
+<li>LOS binary data (<code class="file docutils literal"><span class="pre">*.rdr.geo</span></code>)</li>
+</ul>
+</div></blockquote>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">data are in radians but no transformation to
+meters yet, as &#8216;wavelength&#8217; or at least sensor name is not
+provided in the XML file.</p>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.scene_io.GMTSAR">
+<em class="property">class </em><code class="descclassname">kite.scene_io.</code><code class="descname">GMTSAR</code><span class="sig-paren">(</span><em>scene=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#GMTSAR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.GMTSAR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use gmt5sar <code class="docutils literal"><span class="pre">SAT_look</span></code> to calculate the corresponding unit look vectors:</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>gmt grd2xyz unwrap_ll.grd <span class="p">|</span> gmt grdtrack -Gdem.grd <span class="p">|</span>
+awk <span class="o">{</span><span class="s1">&#39;print $1, $2, $4&#39;</span><span class="o">}</span> <span class="p">|</span>
+SAT_look <span class="m">20050731</span>.PRM -bos &gt; <span class="m">20050731</span>.los.enu
+</pre></div>
+</div>
+<p>Expects two binary files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Displacement grid (NetCDF, <code class="file docutils literal"><span class="pre">*los_ll.grd</span></code>) in cm
+(get transformed to meters)</li>
+<li>LOS binary data (see instruction, <code class="file docutils literal"><span class="pre">*los.enu</span></code>)</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.scene_io.ROI_PAC">
+<em class="property">class </em><code class="descclassname">kite.scene_io.</code><code class="descname">ROI_PAC</code><span class="sig-paren">(</span><em>scene=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#ROI_PAC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.ROI_PAC" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Data has to be georeferenced to latitude/longitude!</p>
+</div>
+<p>The unwrapped displacement is expected in radians and will be scaled
+to meters by <cite>WAVELENGTH</cite> parsed from the <code class="file docutils literal"><span class="pre">*.rsc</span></code> file.</p>
+<p>Expects two files:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Binary file from ROI_PAC (<code class="file docutils literal"><span class="pre">*</span></code>)</li>
+<li>Parameter file (<code class="file docutils literal"><span class="pre">&lt;binary_file&gt;.rsc</span></code>)
+describing <code class="docutils literal"><span class="pre">'WIDTH',</span> <span class="pre">'FILE_LENGTH',</span> <span class="pre">'X_FIRST',</span> <span class="pre">'Y_FIRST',</span> <span class="pre">'X_STEP',</span>
+<span class="pre">'Y_STEP',</span> <span class="pre">'WAVELENGTH</span></code></li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="kite.scene_io.ROI_PAC.read">
+<code class="descname">read</code><span class="sig-paren">(</span><em>filename</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/kite/scene_io.html#ROI_PAC.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.scene_io.ROI_PAC.read" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>str</em>) &#8211; ROI_PAC binary file</li>
+<li><strong>par_file</strong> (<em>str</em>) &#8211; Corresponding parameter (<code class="file docutils literal"><span class="pre">*rsc</span></code>) file.
+(optional)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Import dictionary</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">dict</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ImportError</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kite.quadtree.html" title="The Quadtree Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="Module Reference"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

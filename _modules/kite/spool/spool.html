@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kite.spool.spool &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.spool.spool</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/python</span>
+<span class="kn">from</span> <span class="nn">PySide</span> <span class="k">import</span> <span class="n">QtGui</span><span class="p">,</span> <span class="n">QtCore</span>
+<span class="kn">from</span> <span class="nn">.scene_proxy</span> <span class="k">import</span> <span class="n">QSceneProxy</span>
+<span class="kn">from</span> <span class="nn">.tab_scene</span> <span class="k">import</span> <span class="n">QKiteScene</span>
+<span class="kn">from</span> <span class="nn">.tab_quadtree</span> <span class="k">import</span> <span class="n">QKiteQuadtree</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">.tab_covariance</span> <span class="k">import</span> <span class="n">QKiteCovariance</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">.utils_qt</span> <span class="k">import</span> <span class="n">loadUi</span>
+<span class="kn">from</span> <span class="nn">..scene</span> <span class="k">import</span> <span class="n">Scene</span>
+
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>  <span class="c1"># noqa</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pyqtgraph</span> <span class="k">as</span> <span class="nn">pg</span>
+
+
+<span class="k">def</span> <span class="nf">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="n">filedir</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">filedir</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">filedir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">W_OK</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Path Error&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;Could not access file &lt;b&gt;</span><span class="si">%s</span><span class="s1">&lt;/b&gt;&#39;</span>
+                                   <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<div class="viewcode-block" id="Spool"><a class="viewcode-back" href="../../../kite.spool.html#kite.spool.Spool">[docs]</a><span class="k">class</span> <span class="nc">Spool</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">import_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QApplication</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;spool&#39;</span><span class="p">])</span>
+        <span class="c1"># self.setStyle(&#39;plastique&#39;)</span>
+        <span class="n">splash_img</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPixmap</span><span class="p">(</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+                      <span class="s1">&#39;ui/spool_splash.png&#39;</span><span class="p">))</span>\
+            <span class="o">.</span><span class="n">scaled</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QSize</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="mi">250</span><span class="p">),</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">KeepAspectRatio</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splash</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QSplashScreen</span><span class="p">(</span><span class="n">splash_img</span><span class="p">,</span>
+                                          <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">WindowStaysOnTopHint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updateSplashMessage</span><span class="p">(</span><span class="s1">&#39;Scene&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splash</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span> <span class="o">=</span> <span class="n">SpoolMainWindow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">sigLoadingModule</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateSplashMessage</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">actionExit</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">exit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">worker_thread</span><span class="o">.</span><span class="n">quit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splash</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aboutToQuit</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scene</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addScene</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">import_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">importScene</span><span class="p">(</span><span class="n">import_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">load_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadScene</span><span class="p">(</span><span class="n">load_file</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">splash</span><span class="o">.</span><span class="n">finish</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exec_</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">rc</span><span class="p">)</span>
+
+    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<div class="viewcode-block" id="Spool.updateSplashMessage"><a class="viewcode-back" href="../../../kite.spool.html#kite.spool.Spool.updateSplashMessage">[docs]</a>    <span class="k">def</span> <span class="nf">updateSplashMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splash</span><span class="o">.</span><span class="n">showMessage</span><span class="p">(</span><span class="s2">&quot;Loading </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="n">msg</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                                <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignBottom</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spool.addScene"><a class="viewcode-back" href="../../../kite.spool.html#kite.spool.Spool.addScene">[docs]</a>    <span class="k">def</span> <span class="nf">addScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">addScene</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spool.importScene"><a class="viewcode-back" href="../../../kite.spool.html#kite.spool.Spool.importScene">[docs]</a>    <span class="k">def</span> <span class="nf">importScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">importFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Spool.loadScene"><a class="viewcode-back" href="../../../kite.spool.html#kite.spool.Spool.loadScene">[docs]</a>    <span class="k">def</span> <span class="nf">loadScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">loadFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<span class="k">class</span> <span class="nc">SpoolMainWindow</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QMainWindow</span><span class="p">):</span>
+    <span class="n">sigImportFile</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">sigLoadFile</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">sigLoadConfig</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">sigExportWeightMatrix</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">sigLoadingModule</span> <span class="o">=</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Signal</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QMainWindow</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadUi</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">views</span> <span class="o">=</span> <span class="p">[</span><span class="n">QKiteScene</span><span class="p">,</span> <span class="n">QKiteQuadtree</span><span class="p">,</span> <span class="n">QKiteCovariance</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ptree</span> <span class="o">=</span> <span class="n">QKiteParameterTree</span><span class="p">(</span><span class="n">showHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ptree</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">splitter</span><span class="o">.</span><span class="n">insertWidget</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ptree</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span> <span class="o">=</span> <span class="n">QSceneProxy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">sigSceneModelChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">buildViews</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigLoadFile</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">loadFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigImportFile</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">importFile</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigLoadConfig</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">loadConfig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigExportWeightMatrix</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">exportWeightMatrix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_model</span> <span class="o">=</span> <span class="n">SceneLogModel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">SceneLog</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionSave_config</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onSaveConfig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionSave_scene</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onSaveData</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionLoad_config</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onLoadConfig</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionLoad_scene</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onOpenScene</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionImport_scene</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onImportScene</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionExport_quadtree</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onExportQuadtree</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionExport_weights</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">onExportWeightMatrix</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionAbout_Spool</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">about</span><span class="o">.</span><span class="n">show</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionHelp</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDesktopServices</span><span class="o">.</span><span class="n">openUrl</span><span class="p">(</span><span class="s1">&#39;http://pyrocko.org&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actionLog</span><span class="o">.</span><span class="n">triggered</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">show</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QProgressDialog</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">closeEvent</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">ignore</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s1">&#39;processing...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">sigProcessingFinished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">reset</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">about</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_about</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">()</span>
+        <span class="n">about_ui</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+                             <span class="s1">&#39;ui/about.ui&#39;</span><span class="p">)</span>
+        <span class="n">loadUi</span><span class="p">(</span><span class="n">about_ui</span><span class="p">,</span> <span class="n">baseinstance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_about</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_about</span>
+
+    <span class="k">def</span> <span class="nf">loadUi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ui_file</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+                            <span class="s1">&#39;ui/spool.ui&#39;</span><span class="p">)</span>
+        <span class="n">loadUi</span><span class="p">(</span><span class="n">ui_file</span><span class="p">,</span> <span class="n">baseinstance</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">def</span> <span class="nf">addScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">setScene</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buildViews</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">buildViews</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">scene</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">count</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">views</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addView</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">sigProcessingStarted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">processingStarted</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">addView</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">view</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigLoadingModule</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">view</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tabs</span><span class="o">.</span><span class="n">addTab</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">view</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">processEvents</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">view</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ptree</span><span class="o">.</span><span class="n">addParameters</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+
+    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">processingStarted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">setLabelText</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">onSaveConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;YAML file *.yml (*.yml)&#39;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Save scene YAML config&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">save_config</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onSaveData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;YAML *.yml and NumPy container *.npz (*.yml *.npz)&#39;</span><span class="p">,</span>
+            <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Save scene&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onLoadConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;YAML file *.yml (*.yml)&#39;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Load scene YAML config&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigLoadConfig</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onOpenScene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;YAML *.yml and NumPy container *.npz (*.yml *.npz)&#39;</span><span class="p">,</span>
+            <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Load kite scene&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">loadFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onImportScene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getOpenFileName</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;Supported Formats, *.grd, *.geo, *unw*, *.mat &#39;</span>
+                   <span class="s1">&#39;(*.grd,*.geo,*unw*,*.mat);;&#39;</span>
+                   <span class="s1">&#39;GMT5SAR Scene, *.grd (*.grd);;&#39;</span>
+                   <span class="s1">&#39;ISCE Scene, *unw* (*unw*);;Gamma Scene *.geo (*.geo);;&#39;</span>
+                   <span class="s1">&#39;Matlab Container, *.mat (*.mat);;Any File * (*)&#39;</span><span class="p">,</span>
+            <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Import scene to spool&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigImportFile</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onExportQuadtree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;CSV File *.csv (*.csv)&#39;</span><span class="p">,</span> <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Export Quadtree CSV&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">onExportWeightMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filename</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QFileDialog</span><span class="o">.</span><span class="n">getSaveFileName</span><span class="p">(</span>
+            <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;Text File *.txt (*.txt)&#39;</span><span class="p">,</span>
+            <span class="n">caption</span><span class="o">=</span><span class="s1">&#39;Export Covariance Weights&#39;</span><span class="p">,)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">validateFilename</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigExportWeightMatrix</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">QKiteParameterTree</span><span class="p">(</span><span class="n">pg</span><span class="o">.</span><span class="n">parametertree</span><span class="o">.</span><span class="n">ParameterTree</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">SceneLogModel</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QAbstractTableModel</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="p">):</span>
+    <span class="n">log_records</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spool</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">QtCore</span><span class="o">.</span><span class="n">QAbstractTableModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool</span> <span class="o">=</span> <span class="n">spool</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool</span><span class="o">.</span><span class="n">scene_proxy</span><span class="o">.</span><span class="n">sigLogRecord</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newRecord</span><span class="p">)</span>
+        <span class="n">getPixmap</span> <span class="o">=</span> <span class="n">spool</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">standardPixmap</span>
+        <span class="n">qstyle</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QStyle</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">levels</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="mi">50</span><span class="p">:</span> <span class="p">[</span><span class="n">getPixmap</span><span class="p">(</span><span class="n">qstyle</span><span class="o">.</span><span class="n">SP_MessageBoxCritical</span><span class="p">),</span> <span class="s1">&#39;Critical&#39;</span><span class="p">],</span>
+            <span class="mi">40</span><span class="p">:</span> <span class="p">[</span><span class="n">getPixmap</span><span class="p">(</span><span class="n">qstyle</span><span class="o">.</span><span class="n">SP_MessageBoxCritical</span><span class="p">),</span> <span class="s1">&#39;Error&#39;</span><span class="p">],</span>
+            <span class="mi">30</span><span class="p">:</span> <span class="p">[</span><span class="n">getPixmap</span><span class="p">(</span><span class="n">qstyle</span><span class="o">.</span><span class="n">SP_MessageBoxWarning</span><span class="p">),</span> <span class="s1">&#39;Warning&#39;</span><span class="p">],</span>
+            <span class="mi">20</span><span class="p">:</span> <span class="p">[</span><span class="n">getPixmap</span><span class="p">(</span><span class="n">qstyle</span><span class="o">.</span><span class="n">SP_MessageBoxInformation</span><span class="p">),</span> <span class="s1">&#39;Info&#39;</span><span class="p">],</span>
+            <span class="mi">10</span><span class="p">:</span> <span class="p">[</span><span class="n">getPixmap</span><span class="p">(</span><span class="n">qstyle</span><span class="o">.</span><span class="n">SP_FileIcon</span><span class="p">),</span> <span class="s1">&#39;Debug&#39;</span><span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
+            <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scaledToHeight</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">role</span><span class="p">):</span>
+        <span class="n">rec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_records</span><span class="p">[</span><span class="n">idx</span><span class="o">.</span><span class="n">row</span><span class="p">()]</span>
+
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DisplayRole</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">levelno</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">levelname</span><span class="p">,</span> <span class="n">rec</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">rec</span><span class="o">.</span><span class="n">getMessage</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">role</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">ItemDataRole</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">idx</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">role</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">DecorationRole</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="n">log_lvl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">data</span><span class="p">())]</span>
+            <span class="k">return</span> <span class="n">log_lvl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">role</span> <span class="o">==</span> <span class="n">QtCore</span><span class="o">.</span><span class="n">Qt</span><span class="o">.</span><span class="n">ToolTipRole</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">rec</span><span class="o">.</span><span class="n">levelname</span>
+            <span class="k">elif</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rec</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="n">rec</span><span class="o">.</span><span class="n">funcName</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">idx</span><span class="o">.</span><span class="n">column</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;Line </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">rec</span><span class="o">.</span><span class="n">lineno</span>
+
+    <span class="k">def</span> <span class="nf">rowCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_records</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">columnCount</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">3</span>
+
+    <span class="nd">@QtCore</span><span class="o">.</span><span class="n">Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">newRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beginInsertRows</span><span class="p">(</span><span class="n">QtCore</span><span class="o">.</span><span class="n">QModelIndex</span><span class="p">(),</span>
+                             <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endInsertRows</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spool</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="n">scrollToBottom</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">levelno</span> <span class="o">&gt;=</span> <span class="mi">30</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">spool</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">autoBox</span><span class="o">.</span><span class="n">isChecked</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spool</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+
+<span class="k">class</span> <span class="nc">SceneLog</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="p">):</span>
+
+    <span class="k">class</span> <span class="nc">LogFilter</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QSortFilterProxyModel</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="n">QtGui</span><span class="o">.</span><span class="n">QSortFilterProxyModel</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">def</span> <span class="nf">setLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="n">level</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setFilterRegExp</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">QtGui</span><span class="o">.</span><span class="n">QDialog</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+
+        <span class="n">log_ui</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span>
+                           <span class="s1">&#39;ui/logging.ui&#39;</span><span class="p">)</span>
+        <span class="n">loadUi</span><span class="p">(</span><span class="n">log_ui</span><span class="p">,</span> <span class="n">baseinstance</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">closeButton</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">()</span><span class="o">.</span><span class="n">standardPixmap</span><span class="p">(</span>
+                                 <span class="n">QtGui</span><span class="o">.</span><span class="n">QStyle</span><span class="o">.</span><span class="n">SP_DialogCloseButton</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LogFilter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="o">.</span><span class="n">setFilterKeyColumn</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="o">.</span><span class="n">setDynamicSortFilter</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="o">.</span><span class="n">setSourceModel</span><span class="p">(</span><span class="n">parent</span><span class="o">.</span><span class="n">log_model</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="n">setModel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="n">setColumnWidth</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tableView</span><span class="o">.</span><span class="n">setColumnWidth</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filterBox</span><span class="o">.</span><span class="n">addItems</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">log_model</span><span class="o">.</span><span class="n">levels</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;All&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filterBox</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">changeFilter</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">parent</span><span class="o">.</span><span class="n">log_model</span><span class="o">.</span><span class="n">levels</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">filterBox</span><span class="o">.</span><span class="n">currentText</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">table_filter</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">filterBox</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">changeFilter</span><span class="p">)</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Spool&#39;</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">kite.scene</span> <span class="k">import</span> <span class="n">SceneSynTest</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sc</span> <span class="o">=</span> <span class="n">SceneSynTest</span><span class="o">.</span><span class="n">createGauss</span><span class="p">()</span>
+
+    <span class="n">Spool</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="n">sc</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>kite.scene_io &#8212; Kite  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body role="document">
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.scene_io</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">scipy.io</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;Matlab&#39;</span><span class="p">,</span> <span class="s1">&#39;ISCE&#39;</span><span class="p">,</span> <span class="s1">&#39;GMTSAR&#39;</span><span class="p">,</span> <span class="s1">&#39;ROI_PAC&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">check_required</span><span class="p">(</span><span class="n">required</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">required</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">safe_cast</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">to_type</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">to_type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">default</span>
+
+
+<span class="k">class</span> <span class="nc">SceneIO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Prototype class for SARIO objects &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">scene</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">getChild</span><span class="p">(</span><span class="s1">&#39;IO/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">logging</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;SceneIO/</span><span class="si">%s</span><span class="s1">&#39;</span>
+                                          <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>    <span class="c1"># Look incident angle from vertical in degree</span>
+            <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>  <span class="c1"># Look orientation angle from east; 0deg East,</span>
+                          <span class="c1"># 90deg North</span>
+            <span class="s1">&#39;displacement&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Displacement towards LOS</span>
+            <span class="s1">&#39;frame&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;llLon&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Lower left corner latitude</span>
+                <span class="s1">&#39;llLat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Lower left corner londgitude</span>
+                <span class="s1">&#39;dLat&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Pixel delta latitude</span>
+                <span class="s1">&#39;dLon&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Pixel delta longitude</span>
+            <span class="p">},</span>
+            <span class="c1"># Meta information</span>
+            <span class="s1">&#39;meta&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;orbit_direction&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;satellite_name&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;wavelength&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;time_master&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s1">&#39;time_slave&#39;</span><span class="p">:</span> <span class="kc">None</span>
+            <span class="p">},</span>
+            <span class="c1"># All extra information</span>
+            <span class="s1">&#39;extra&#39;</span><span class="p">:</span> <span class="p">{}</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read function of the file format</span>
+
+<span class="sd">        :param filename: file to read</span>
+<span class="sd">        :type filename: string</span>
+<span class="sd">        :param **kwargs: Keyword arguments</span>
+<span class="sd">        :type **kwargs: {dict}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;read not implemented&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Write method for IO</span>
+
+<span class="sd">        :param filename: file to write to</span>
+<span class="sd">        :type filename: string</span>
+<span class="sd">        :param **kwargs: Keyword arguments</span>
+<span class="sd">        :type **kwargs: {dict}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;write not implemented&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Validate file format</span>
+
+<span class="sd">        :param filename: file to validate</span>
+<span class="sd">        :type filename: string</span>
+<span class="sd">        :returns: Validation</span>
+<span class="sd">        :rtype: {bool}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;validate not implemented&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Matlab"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.Matlab">[docs]</a><span class="k">class</span> <span class="nc">Matlab</span><span class="p">(</span><span class="n">SceneIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Variable naming conventions for Matlab :file:`.mat` container:</span>
+
+<span class="sd">        ================== ====================</span>
+<span class="sd">        Property           Matlab ``.mat`` name</span>
+<span class="sd">        ================== ====================</span>
+<span class="sd">        Scene.displacement ``ig_``</span>
+<span class="sd">        Scene.phi          ``phi``</span>
+<span class="sd">        Scene.theta        ``theta``</span>
+<span class="sd">        Scene.frame.x      ``xx``</span>
+<span class="sd">        Scene.frame.y      ``yy``</span>
+<span class="sd">        ================== ====================</span>
+
+<span class="sd">    Displacement is expected to be in meters.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filename</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;.mat&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">variables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">whosmat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">utm</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span>
+
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">utm_e</span> <span class="o">=</span> <span class="n">utm_n</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">mat_k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mat</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">io_k</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">io_k</span> <span class="ow">in</span> <span class="n">mat_k</span><span class="p">:</span>
+                    <span class="n">c</span><span class="p">[</span><span class="n">io_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">mat_k</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="s1">&#39;ig_&#39;</span> <span class="ow">in</span> <span class="n">mat_k</span><span class="p">:</span>
+                    <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">mat_k</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="s1">&#39;xx&#39;</span> <span class="ow">in</span> <span class="n">mat_k</span><span class="p">:</span>
+                    <span class="n">utm_e</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">mat_k</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="s1">&#39;yy&#39;</span> <span class="ow">in</span> <span class="n">mat_k</span><span class="p">:</span>
+                    <span class="n">utm_n</span> <span class="o">=</span> <span class="n">mat</span><span class="p">[</span><span class="n">mat_k</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">utm_e</span><span class="p">)</span> <span class="ow">or</span> <span class="n">num</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">utm_n</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s1">&#39;Could not find referencing UTM vectors in .mat file&#39;</span><span class="p">)</span>
+            <span class="n">utm_e</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">100000</span><span class="p">,</span> <span class="mi">110000</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">utm_n</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">1100000</span><span class="p">,</span> <span class="mi">1110000</span><span class="p">,</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">utm_e</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e4</span> <span class="ow">or</span> <span class="n">utm_n</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e4</span><span class="p">:</span>
+            <span class="n">utm_e</span> <span class="o">*=</span> <span class="mf">1e3</span>
+            <span class="n">utm_n</span> <span class="o">*=</span> <span class="mf">1e3</span>
+        <span class="n">utm_zone</span> <span class="o">=</span> <span class="mi">47</span>
+        <span class="n">utm_zone_letter</span> <span class="o">=</span> <span class="s1">&#39;Q&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Defaulting to UTM Zone </span><span class="si">%d%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="n">utm_zone</span><span class="p">,</span> <span class="n">utm_zone_letter</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="n">utm</span><span class="o">.</span><span class="n">to_latlon</span><span class="p">(</span><span class="n">utm_e</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">utm_n</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                              <span class="n">utm_zone</span><span class="p">,</span> <span class="n">utm_zone_letter</span><span class="p">)</span>
+            <span class="n">urlat</span><span class="p">,</span> <span class="n">urlon</span> <span class="o">=</span> <span class="n">utm</span><span class="o">.</span><span class="n">to_latlon</span><span class="p">(</span><span class="n">utm_e</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">utm_n</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                                         <span class="n">utm_zone</span><span class="p">,</span> <span class="n">utm_zone_letter</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="p">(</span><span class="n">urlat</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">])</span> <span class="o">/</span>\
+                <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="p">(</span><span class="n">urlon</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">])</span> <span class="o">/</span>\
+                <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="n">utm</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">utm_e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">utm_e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">110e3</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">utm_n</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">utm_n</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">110e3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not interpret spatial vectors, &#39;</span>
+                              <span class="s1">&#39;referencing to 0, 0 (lat, lon)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="Gamma"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.Gamma">[docs]</a><span class="k">class</span> <span class="nc">Gamma</span><span class="p">(</span><span class="n">SceneIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. warning :: Data has to be georeferenced to latitude/longitude or UTM!</span>
+
+<span class="sd">    Expects two files:</span>
+
+<span class="sd">        * Binary file from Gamma (:file:`*`) with displacement in radians.</span>
+<span class="sd">          Displacements are translated to meters using the `radar_frequency`</span>
+<span class="sd">          in [Hz] is given in the :file:`*.par` file.</span>
+<span class="sd">        * Parameter file (:file:`*par`) describing `corner_lat, corner_lon,</span>
+<span class="sd">          nlines, width, post_lat, post_lon`</span>
+<span class="sd">          or `&#39;post_north&#39;, &#39;post_east&#39;, &#39;corner_east&#39;,</span>
+<span class="sd">          &#39;corner_north&#39;, &#39;nlines&#39;, &#39;width&#39;`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_getParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+        <span class="n">par_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/*par&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">par_files</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Found parameter file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">file</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">file</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find suiting Gamma parameter file (*par)&#39;</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">required_utm</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;post_north&#39;</span><span class="p">,</span> <span class="s1">&#39;post_east&#39;</span><span class="p">,</span> <span class="s1">&#39;corner_east&#39;</span><span class="p">,</span>
+                        <span class="s1">&#39;corner_north&#39;</span><span class="p">,</span> <span class="s1">&#39;nlines&#39;</span><span class="p">,</span> <span class="s1">&#39;width&#39;</span><span class="p">]</span>
+        <span class="n">required_lat_lon</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;corner_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;corner_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;nlines&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;width&#39;</span><span class="p">,</span> <span class="s1">&#39;post_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;post_lon&#39;</span><span class="p">]</span>
+        <span class="n">rc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\w*):\s*([a-zA-Z0-9+-.*]*\s[a-zA-Z0-9_]*).*&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">par_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">par</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">par</span><span class="p">:</span>
+                <span class="n">parsed</span> <span class="o">=</span> <span class="n">rc</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parsed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">groups</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">safe_cast</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span>
+                                              <span class="n">default</span><span class="o">=</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">check_required</span><span class="p">(</span><span class="n">required_utm</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>\
+           <span class="ow">or</span> <span class="n">check_required</span><span class="p">(</span><span class="n">required_lat_lon</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">params</span>
+
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                    <span class="s1">&#39;Parameter file does not hold required parameters&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">par_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;par_file&#39;</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_getParameterFile</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_getAngle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="n">phi_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phi_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not find </span><span class="si">%s</span><span class="s1"> file, defaulting to 0.&#39;</span>
+                              <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">phi_files</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Found multiple </span><span class="si">%s</span><span class="s1"> files, defaulting to 0.&#39;</span>
+                              <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mf">0.</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">phi_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found </span><span class="si">%s</span><span class="s1"> in </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">filename</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f4&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Gamma.read"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.Gamma.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param filename: Gamma software binary file</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        :param par_file: Corresponding parameter (:file:`*par`) file.</span>
+<span class="sd">                         (optional)</span>
+<span class="sd">        :type par_file: str</span>
+<span class="sd">        :returns: Import dictionary</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        :raises: ImportError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">par_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;par_file&#39;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">_getParameterFile</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="n">par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">)</span>
+        <span class="n">fill</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">])</span>
+        <span class="n">nlines</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;nlines&#39;</span><span class="p">])</span>
+        <span class="n">radar_frequency</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;radar_frequency&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&gt;f4&#39;</span><span class="p">)</span>
+        <span class="c1"># Resize array if last line is not scanned completely</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">displ</span><span class="o">.</span><span class="n">size</span> <span class="o">%</span> <span class="n">nrows</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">fill</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">nrows</span> <span class="o">-</span> <span class="n">displ</span><span class="o">.</span><span class="n">size</span> <span class="o">%</span> <span class="n">nrows</span><span class="p">)</span>
+            <span class="n">fill</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+            <span class="n">displ</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">displ</span><span class="p">,</span> <span class="n">fill</span><span class="p">)</span>
+
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">displ</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlines</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="n">displ</span><span class="p">[</span><span class="n">displ</span> <span class="o">==</span> <span class="o">-</span><span class="mf">0.</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">displ</span><span class="p">)</span>
+
+        <span class="n">phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;*phi*&#39;</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAngle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;*theta*&#39;</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">phi</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlines</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlines</span><span class="p">,</span> <span class="n">nrows</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fill</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">fill</span><span class="p">)</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">fill</span><span class="p">)</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span>
+
+        <span class="k">if</span> <span class="n">radar_frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Scaling radian displacement by radar_frequency&#39;</span><span class="p">)</span>
+            <span class="n">wavelength</span> <span class="o">=</span> <span class="mf">299792458.</span> <span class="o">/</span> <span class="n">radar_frequency</span>
+            <span class="n">displ</span> <span class="o">=</span> <span class="p">(</span><span class="n">displ</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span> <span class="n">wavelength</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wavelength</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">displ</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;bin_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;par_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par_file</span>
+
+        <span class="k">if</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;DEM_projection&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;UTM&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parameter file provides UTM reference&#39;</span><span class="p">)</span>
+            <span class="kn">import</span> <span class="nn">utm</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">displ</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>
+            <span class="n">utm_zone</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;projection_zone&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">utm_zone_letter</span> <span class="o">=</span> <span class="n">utm</span><span class="o">.</span><span class="n">latitude_to_zone_letter</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">[</span><span class="s1">&#39;center_latitude&#39;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not parse UTM Zone letter,&#39;</span>
+                                  <span class="s1">&#39; defaulting to N!&#39;</span><span class="p">)</span>
+                <span class="n">utm_zone_letter</span> <span class="o">=</span> <span class="s1">&#39;N&#39;</span>
+
+            <span class="n">utm_e</span> <span class="o">=</span> <span class="n">utm_n</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">dN</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;post_north&#39;</span><span class="p">]</span>
+            <span class="n">dE</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;post_east&#39;</span><span class="p">]</span>
+            <span class="n">utm_corn_e</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;corner_east&#39;</span><span class="p">]</span>
+            <span class="n">utm_corn_n</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;corner_north&#39;</span><span class="p">]</span>
+
+            <span class="n">utm_corn_eo</span> <span class="o">=</span> <span class="n">utm_corn_e</span> <span class="o">+</span> <span class="n">dE</span> <span class="o">*</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">utm_corn_no</span> <span class="o">=</span> <span class="n">utm_corn_n</span> <span class="o">+</span> <span class="n">dN</span> <span class="o">*</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">utm_e</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">utm_corn_e</span><span class="p">,</span> <span class="n">utm_corn_eo</span><span class="p">,</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">utm_n</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">utm_corn_n</span><span class="p">,</span> <span class="n">utm_corn_no</span><span class="p">,</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="n">utm</span><span class="o">.</span><span class="n">to_latlon</span><span class="p">(</span><span class="n">utm_e</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">utm_n</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span>
+                              <span class="n">utm_zone</span><span class="p">,</span> <span class="n">utm_zone_letter</span><span class="p">)</span>
+            <span class="n">urlat</span><span class="p">,</span> <span class="n">urlon</span> <span class="o">=</span> <span class="n">utm</span><span class="o">.</span><span class="n">to_latlon</span><span class="p">(</span><span class="n">utm_e</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">utm_n</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span>
+                                         <span class="n">utm_zone</span><span class="p">,</span> <span class="n">utm_zone_letter</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="p">(</span><span class="n">urlat</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="p">(</span><span class="n">urlon</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="n">displ</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Parameter file provides Lat/Lon reference&#39;</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;corner_lat&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;post_lat&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nrows</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;corner_lon&#39;</span><span class="p">]</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;post_lon&#39;</span><span class="p">]</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;post_lat&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span></div></div>
+
+
+<div class="viewcode-block" id="ROI_PAC"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.ROI_PAC">[docs]</a><span class="k">class</span> <span class="nc">ROI_PAC</span><span class="p">(</span><span class="n">SceneIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    .. warning :: Data has to be georeferenced to latitude/longitude!</span>
+
+<span class="sd">    The unwrapped displacement is expected in radians and will be scaled</span>
+<span class="sd">    to meters by `WAVELENGTH` parsed from the :file:`*.rsc` file.</span>
+
+<span class="sd">    Expects two files:</span>
+
+<span class="sd">        * Binary file from ROI_PAC (:file:`*`)</span>
+<span class="sd">        * Parameter file (:file:`&lt;binary_file&gt;.rsc`)</span>
+<span class="sd">          describing ``&#39;WIDTH&#39;, &#39;FILE_LENGTH&#39;, &#39;X_FIRST&#39;, &#39;Y_FIRST&#39;, &#39;X_STEP&#39;,</span>
+<span class="sd">          &#39;Y_STEP&#39;, &#39;WAVELENGTH``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">par_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;par_file&#39;</span><span class="p">,</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">_getParameterFile</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_getParameterFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bin_file</span><span class="p">):</span>
+        <span class="n">par_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">bin_file</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.rsc&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Found parameter file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">par_file</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">IOError</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find ROI_PAC parameter file (</span><span class="si">%s</span><span class="s1">)&#39;</span>
+                              <span class="o">%</span> <span class="n">par_file</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">re</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;WIDTH&#39;</span><span class="p">,</span> <span class="s1">&#39;FILE_LENGTH&#39;</span><span class="p">,</span> <span class="s1">&#39;X_FIRST&#39;</span><span class="p">,</span> <span class="s1">&#39;Y_FIRST&#39;</span><span class="p">,</span> <span class="s1">&#39;X_STEP&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Y_STEP&#39;</span><span class="p">,</span> <span class="s1">&#39;WAVELENGTH&#39;</span><span class="p">]</span>
+
+        <span class="n">rc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([\w]*)\s*([\w.+-]*)&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">par_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">par</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">par</span><span class="p">:</span>
+                <span class="n">parsed</span> <span class="o">=</span> <span class="n">rc</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parsed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">groups</span> <span class="o">=</span> <span class="n">parsed</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+                <span class="n">params</span><span class="p">[</span><span class="n">groups</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">safe_cast</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">float</span><span class="p">,</span>
+                                              <span class="n">default</span><span class="o">=</span><span class="n">groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="n">check_required</span><span class="p">(</span><span class="n">required</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">params</span>
+
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s1">&#39;Parameter file does not hold required parameters&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ROI_PAC.read"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.ROI_PAC.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param filename: ROI_PAC binary file</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        :param par_file: Corresponding parameter (:file:`*rsc`) file.</span>
+<span class="sd">                         (optional)</span>
+<span class="sd">        :type par_file: str</span>
+<span class="sd">        :returns: Import dictionary</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        :raises: ImportError</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">par_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;par_file&#39;</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">_getParameterFile</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+        <span class="n">par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parseParameterFile</span><span class="p">(</span><span class="n">par_file</span><span class="p">)</span>
+
+        <span class="n">nlines</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;FILE_LENGTH&#39;</span><span class="p">])</span>
+        <span class="n">nrows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">par</span><span class="p">[</span><span class="s1">&#39;WIDTH&#39;</span><span class="p">])</span>
+        <span class="n">wavelength</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;WAVELENGTH&#39;</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;f4&#39;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlines</span><span class="p">,</span> <span class="n">nrows</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">nrows</span><span class="p">:]</span>
+        <span class="n">displ</span><span class="p">[</span><span class="n">displ</span> <span class="o">==</span> <span class="o">-</span><span class="mf">0.</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">displ</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.</span><span class="o">*</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">wavelength</span>
+
+        <span class="n">z_scale</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Z_SCALE&#39;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+        <span class="n">z_offset</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Z_OFFSET&#39;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="n">displ</span> <span class="o">+=</span> <span class="n">z_offset</span>
+        <span class="n">displ</span> <span class="o">*=</span> <span class="n">z_scale</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">displ</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;NOT IMPLEMENTED - &#39;</span>
+                          <span class="s1">&#39;Theta and phi are defaulting to vertical incident!&#39;</span><span class="p">)</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TITLE&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">)</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;meta&#39;</span><span class="p">][</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;WAVELENGTH&#39;</span><span class="p">]</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;bin_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;par_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par_file</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;Y_FIRST&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;Y_STEP&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nrows</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;X_FIRST&#39;</span><span class="p">]</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;X_STEP&#39;</span><span class="p">]</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">par</span><span class="p">[</span><span class="s1">&#39;Y_STEP&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">ISCEXMLParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">type_convert</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">t</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not convert value&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">getProperty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">iter</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;property&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_convert</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">child</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;component&#39;</span><span class="p">:</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s1">&#39;property&#39;</span><span class="p">):</span>
+                        <span class="n">values</span><span class="p">[</span><span class="n">prop</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)]</span> <span class="o">=</span>\
+                            <span class="bp">self</span><span class="o">.</span><span class="n">type_convert</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">values</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ISCE"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.ISCE">[docs]</a><span class="k">class</span> <span class="nc">ISCE</span><span class="p">(</span><span class="n">SceneIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Expects three files in the same folder:</span>
+
+<span class="sd">        * Unwrapped displacement binary (:file:`*.unw.geo`)</span>
+<span class="sd">        * Metadata XML (:file:`*.unw.geo.xml`)</span>
+<span class="sd">        * LOS binary data (:file:`*.rdr.geo`)</span>
+
+<span class="sd">     .. warning:: data are in radians but no transformation to</span>
+<span class="sd">        meters yet, as &#39;wavelength&#39; or at least sensor name is not</span>
+<span class="sd">        provided in the XML file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getDisplacementFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getLOSFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_getLOSFile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">rdr_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*.rdr.geo&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rdr_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find LOS file (*.rdr.geo)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rdr_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_getDisplacementFile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">disp_file</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*.unw.geo&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find displacement file &#39;</span>
+                                  <span class="s1">&#39;(.unw.geo) at </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">disp_file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.xml&#39;</span> <span class="o">%</span> <span class="n">disp_file</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find displacement XML file &#39;</span>
+                              <span class="s1">&#39;(</span><span class="si">%s</span><span class="s1">.unw.geo.xml)&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">disp_file</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">disp_file</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span>
+        <span class="n">isce_xml</span> <span class="o">=</span> <span class="n">ISCEXMLParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getDisplacementFile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span><span class="p">)</span>
+
+        <span class="n">coord_lon</span> <span class="o">=</span> <span class="n">isce_xml</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s1">&#39;coordinate1&#39;</span><span class="p">)</span>
+        <span class="n">coord_lat</span> <span class="o">=</span> <span class="n">isce_xml</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s1">&#39;coordinate2&#39;</span><span class="p">)</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coord_lat</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">])</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">coord_lon</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">])</span>
+        <span class="n">nlon</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">coord_lon</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
+        <span class="n">nlat</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">coord_lat</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">])</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord_lat</span><span class="p">[</span><span class="s1">&#39;startingvalue&#39;</span><span class="p">]</span> <span class="o">+</span>\
+            <span class="p">(</span><span class="n">nlat</span> <span class="o">*</span> <span class="n">coord_lat</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">])</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord_lon</span><span class="p">[</span><span class="s1">&#39;startingvalue&#39;</span><span class="p">]</span>
+
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getDisplacementFile</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                           <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;f4&#39;</span><span class="p">)</span>\
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">nlon</span><span class="o">*</span><span class="mi">2</span><span class="p">)[:,</span> <span class="n">nlon</span><span class="p">:]</span>
+        <span class="n">displ</span><span class="p">[</span><span class="n">displ</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">displ</span>
+
+        <span class="n">los_data</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLOSFile</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;f4&#39;</span><span class="p">)</span>\
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">nlon</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">los_data</span><span class="p">[:,</span> <span class="p">:</span><span class="n">nlon</span><span class="p">]</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">los_data</span><span class="p">[:,</span> <span class="n">nlon</span><span class="p">:]</span> <span class="o">+</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="k">return</span> <span class="n">c</span></div>
+
+
+<div class="viewcode-block" id="GMTSAR"><a class="viewcode-back" href="../../kite.scene.html#kite.scene_io.GMTSAR">[docs]</a><span class="k">class</span> <span class="nc">GMTSAR</span><span class="p">(</span><span class="n">SceneIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use gmt5sar ``SAT_look`` to calculate the corresponding unit look vectors:</span>
+
+<span class="sd">    .. code-block:: sh</span>
+
+<span class="sd">        gmt grd2xyz unwrap_ll.grd | gmt grdtrack -Gdem.grd |</span>
+<span class="sd">        awk {&#39;print $1, $2, $4&#39;} |</span>
+<span class="sd">        SAT_look 20050731.PRM -bos &gt; 20050731.los.enu</span>
+
+<span class="sd">    Expects two binary files:</span>
+
+<span class="sd">        * Displacement grid (NetCDF, :file:`*los_ll.grd`) in cm</span>
+<span class="sd">          (get transformed to meters)</span>
+<span class="sd">        * LOS binary data (see instruction, :file:`*los.enu`)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDisplacementFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s1">&#39;.grd&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_getLOSFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">los_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*.los.*&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">los_files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">GMTSAR</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find LOS file (*.los.*)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">los_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_getDisplacementFile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*.grd&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not find displacement file &#39;</span>
+                                  <span class="s1">&#39;(*.grd) at </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+            <span class="n">disp_file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">disp_file</span>
+
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">netcdf</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">container</span>
+
+        <span class="n">grd</span> <span class="o">=</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getDisplacementFile</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                                 <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">displ</span> <span class="o">=</span> <span class="n">grd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;z&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">displ</span> <span class="o">/=</span> <span class="mf">1e2</span>  <span class="c1"># los_ll.grd files come in cm</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">displ</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="c1"># LatLon</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span>
+                              <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLat&#39;</span><span class="p">])</span><span class="o">/</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;dLon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">grd</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span>
+                              <span class="n">c</span><span class="p">[</span><span class="s1">&#39;frame&#39;</span><span class="p">][</span><span class="s1">&#39;llLon&#39;</span><span class="p">])</span><span class="o">/</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Theta and Phi</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">los</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLOSFile</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;&lt;f4&#39;</span><span class="p">)</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">los</span><span class="p">[</span><span class="mi">3</span><span class="p">::</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">los</span><span class="p">[</span><span class="mi">4</span><span class="p">::</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">los</span><span class="p">[</span><span class="mi">5</span><span class="p">::</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+            <span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="n">e</span><span class="p">))</span>
+            <span class="n">phi</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">u</span><span class="p">))</span>
+            <span class="n">theta</span><span class="p">[</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">180.</span>
+
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">phi</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Defaulting theta and phi to 0./2*pi&#39;</span><span class="p">)</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">c</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+
+        <span class="k">return</span> <span class="n">c</span></div>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>
