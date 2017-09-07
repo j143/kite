@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The Quadtree Module &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Covariance Module" href="kite.covariance.html" />
+    <link rel="prev" title="The Scene Module" href="kite.scene.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="index.html" accesskey="U">Module Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-quadtree-module">
+<h1>The Quadtree Module<a class="headerlink" href="#the-quadtree-module" title="Permalink to this headline">¶</a></h1>
+<p>The quadtree reduces the amount of displacement information contained in a full resolution displacement scene by adaptively subsampling in areas of complex signal (a visual example can be found here <a class="reference internal" href="../spool.html"><span class="doc">Spool (GUI)</span></a>. The complexity of the signal is defined through the standard deviation within a tile (or <a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>) of the data. The quadtree parameters define thresholds when a <a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> is split. The four essential threshold controlling the tree are:</p>
+<ul class="simple">
+<li>epsilon/std threshold (<a class="reference internal" href="#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a>)</li>
+<li>Fraction of NaN values within (<a class="reference internal" href="#kite.Quadtree.nan_allowed" title="kite.Quadtree.nan_allowed"><code class="xref py py-attr docutils literal"><span class="pre">nan_allowed</span></code></a>)</li>
+<li>Maximum and minium dimension of the tile
+(<a class="reference internal" href="#kite.Quadtree.tile_size_max" title="kite.Quadtree.tile_size_max"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_max</span></code></a> and <a class="reference internal" href="#kite.Quadtree.tile_size_min" title="kite.Quadtree.tile_size_min"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_min</span></code></a>)</li>
+</ul>
+<p>Programming example of the quadtree can be found here <a class="reference internal" href="../examples/03-quadtree.html"><span class="doc">Quadtree Parametrisation</span></a> and here <a class="reference internal" href="../spool.html"><span class="doc">Spool (GUI)</span></a>.</p>
+<dl class="class">
+<dt id="kite.Quadtree">
+<em class="property">class </em><code class="descclassname">kite.</code><code class="descname">Quadtree</code><span class="sig-paren">(</span><em>scene</em>, <em>config=&lt;kite.quadtree.QuadtreeConfig object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quadtree for irregular subsampling InSAR displacement data held in
+<code class="xref py py-class docutils literal"><span class="pre">kite.scene.Scene</span></code></p>
+<p>InSAR displacement scenes can hold a vast amount of data points,
+which is often highly redundant and unsuitably large for the use in
+inverse modeling. By subsampling and therefore decimating the data points
+systematically through a parametrized quadtree we can reduce the dataset
+without significant loss of displacement information. Quadtree subsampling
+keeps a high spatial resolution where displacement gradients are high and
+efficiently reduces data point density in regions with small displacement
+variations. The product is a managable dataset size with good
+representation of the original data.</p>
+<p>The standard deviation from <a class="reference internal" href="#kite.quadtree.QuadNode.displacement" title="kite.quadtree.QuadNode.displacement"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.displacement</span></code></a>
+is evaluated against different corrections:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">mean</span></code>: Mean is substracted</li>
+<li><code class="docutils literal"><span class="pre">median</span></code>: Median is substracted</li>
+<li><code class="docutils literal"><span class="pre">bilinear</span></code>: A 2D detrend is applied to the node</li>
+<li><code class="docutils literal"><span class="pre">std</span></code>:  Pure standard deviation without correction</li>
+</ul>
+</div></blockquote>
+<p>set through <a class="reference internal" href="#kite.Quadtree.setCorrection" title="kite.Quadtree.setCorrection"><code class="xref py py-func docutils literal"><span class="pre">setCorrection()</span></code></a>. If the standard deviation
+exceeds <a class="reference internal" href="#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a> the node is split.</p>
+<p>Controlling attributes are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a>, RMS threshold</li>
+<li><code class="xref py py-attr docutils literal"><span class="pre">nan_fraction</span></code>, allowed <code class="xref py py-attr docutils literal"><span class="pre">numpy.nan</span></code> in
+node</li>
+<li><a class="reference internal" href="#kite.Quadtree.tile_size_max" title="kite.Quadtree.tile_size_max"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_max</span></code></a>, maximum node size in <em>meter</em></li>
+<li><a class="reference internal" href="#kite.Quadtree.tile_size_min" title="kite.Quadtree.tile_size_min"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_min</span></code></a>, minimum node size in <em>meter</em></li>
+</ul>
+</div></blockquote>
+<p><a class="reference internal" href="#kite.Quadtree.leaves" title="kite.Quadtree.leaves"><code class="xref py py-attr docutils literal"><span class="pre">leaves</span></code></a> hold the current tree’s
+<a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> ‘s. The leaves can also be exported in a
+<em>CSV</em> format through <a class="reference internal" href="#kite.Quadtree.export" title="kite.Quadtree.export"><code class="xref py py-func docutils literal"><span class="pre">export()</span></code></a>.</p>
+<dl class="method">
+<dt id="kite.Quadtree.blacklistLeaves">
+<code class="descname">blacklistLeaves</code><span class="sig-paren">(</span><em>leaves</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.blacklistLeaves"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.blacklistLeaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blacklist a leaf and exclude it from the tree</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>leaves</strong> (<em>list</em>) – Leaf instances</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Quadtree.clearLeaves">
+<code class="descname">clearLeaves</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.clearLeaves"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.clearLeaves" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear cached leafs and properties</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.epsilon">
+<code class="descname">epsilon</code><a class="headerlink" href="#kite.Quadtree.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Threshold for quadtree splitting its <code class="docutils literal"><span class="pre">QuadNode</span></code>.</p>
+<p>The threshold is the maximum standard deviation of leaf mean,
+median or simply its values (see ‘’SetSplitMethod’‘) allowed to
+not further split a “QuadNode”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Sets the epsilon/RMS threshold</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Returns the current epsilon</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.epsilon_min">
+<code class="descname">epsilon_min</code><a class="headerlink" href="#kite.Quadtree.epsilon_min" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Lowest allowed epsilon</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Quadtree.export">
+<code class="descname">export</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exports the current quadtree leaves to <code class="docutils literal"><span class="pre">filename</span></code> in a
+<em>CSV</em> format</p>
+<p>The formatting is:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># node_id, focal_point_E, focal_point_N, theta, phi,             mean_displacement, median_displacement, absolute_weight</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>string</em>) – export to path</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Quadtree.getStaticTarget">
+<code class="descname">getStaticTarget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.getStaticTarget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.getStaticTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not Implemented</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_center_distance">
+<code class="descname">leaf_center_distance</code><a class="headerlink" href="#kite.Quadtree.leaf_center_distance" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Leaf distance to center point of the quadtree</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N,</span> <span class="pre">3)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_coordinates">
+<code class="descname">leaf_coordinates</code><a class="headerlink" href="#kite.Quadtree.leaf_coordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synonym for <code class="xref py py-func docutils literal"><span class="pre">Quadtree.leaf_focal_points()</span></code>
+in easting/northing</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_focal_points">
+<code class="descname">leaf_focal_points</code><a class="headerlink" href="#kite.Quadtree.leaf_focal_points" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf focal points in local coordinates.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N,</span> <span class="pre">2)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_los_rotation_factors">
+<code class="descname">leaf_los_rotation_factors</code><a class="headerlink" href="#kite.Quadtree.leaf_los_rotation_factors" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Trigonometric factors for rotating displacement
+matrices towards LOS.
+See <code class="xref py py-attr docutils literal"><span class="pre">kite.BaseScene.los_rotation_factors</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, Nx3</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_matrix_means">
+<code class="descname">leaf_matrix_means</code><a class="headerlink" href="#kite.Quadtree.leaf_matrix_means" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf mean displacements casted to
+<code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N,</span> <span class="pre">M)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_matrix_medians">
+<code class="descname">leaf_matrix_medians</code><a class="headerlink" href="#kite.Quadtree.leaf_matrix_medians" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf median displacements casted to
+<code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N,</span> <span class="pre">M)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_matrix_weights">
+<code class="descname">leaf_matrix_weights</code><a class="headerlink" href="#kite.Quadtree.leaf_matrix_weights" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf weights casted to <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N,</span> <span class="pre">M)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_means">
+<code class="descname">leaf_means</code><a class="headerlink" href="#kite.Quadtree.leaf_means" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf mean displacements from
+<a class="reference internal" href="#kite.quadtree.QuadNode.mean" title="kite.quadtree.QuadNode.mean"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.mean</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">N</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_medians">
+<code class="descname">leaf_medians</code><a class="headerlink" href="#kite.Quadtree.leaf_medians" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Leaf median displacements from
+<a class="reference internal" href="#kite.quadtree.QuadNode.median" title="kite.quadtree.QuadNode.median"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.median</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">N</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_phis">
+<code class="descname">leaf_phis</code><a class="headerlink" href="#kite.Quadtree.leaf_phis" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Median leaf LOS phi angle. <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.phi</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaf_thetas">
+<code class="descname">leaf_thetas</code><a class="headerlink" href="#kite.Quadtree.leaf_thetas" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Median leaf LOS theta angle. <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.theta</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, size <code class="docutils literal"><span class="pre">(N)</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.leaves">
+<code class="descname">leaves</code><a class="headerlink" href="#kite.Quadtree.leaves" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em>:getter: List of leaves for current configuration.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">(list or <a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> s)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.nan_allowed">
+<code class="descname">nan_allowed</code><a class="headerlink" href="#kite.Quadtree.nan_allowed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fraction of allowed <code class="docutils literal"><span class="pre">NaN</span></code> values in quadtree leaves. If
+value is exceeded the leaf is kicked out entirely.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Setter:</th><td class="field-body">Fraction  <code class="docutils literal"><span class="pre">0.</span> <span class="pre">&lt;=</span> <span class="pre">fraction</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.nleaves">
+<code class="descname">nleaves</code><a class="headerlink" href="#kite.Quadtree.nleaves" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Number of leaves for current parametrisation.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.nnodes">
+<code class="descname">nnodes</code><a class="headerlink" href="#kite.Quadtree.nnodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Number of nodes of the built tree.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.nodes">
+<code class="descname">nodes</code><a class="headerlink" href="#kite.Quadtree.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> All nodes of the tree</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Get the list of nodes</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.plot">
+<code class="descname">plot</code><a class="headerlink" href="#kite.Quadtree.plot" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Simple <cite>matplotlib</cite> illustration of the quadtree</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><code class="xref py py-attr docutils literal"><span class="pre">Quadtree.leaf_matrix_means</span></code>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.reduction_efficiency">
+<code class="descname">reduction_efficiency</code><a class="headerlink" href="#kite.Quadtree.reduction_efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is measure for the reduction of the scene’s full resolution
+over the quadtree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Quadtree efficiency as <img class="math" src="../_images/math/63ddd08f1747d42beb6d45a23d44e6679769d93d.svg" alt="N_{full} / N_{leaves}"/></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.reduction_rms">
+<code class="descname">reduction_rms</code><a class="headerlink" href="#kite.Quadtree.reduction_rms" title="Permalink to this definition">¶</a></dt>
+<dd><p>The RMS error is defined between
+<a class="reference internal" href="#kite.Quadtree.leaf_matrix_means" title="kite.Quadtree.leaf_matrix_means"><code class="xref py py-attr docutils literal"><span class="pre">leaf_matrix_means</span></code></a> and
+<code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">The reduction RMS error</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Quadtree.setConfig">
+<code class="descname">setConfig</code><span class="sig-paren">(</span><em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.setConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.setConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets and updated the config of the instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>config</strong> (<code class="xref py py-class docutils literal"><span class="pre">QuadtreeConfig</span></code>, optional) – New config instance, defaults to configuration provided
+by parent <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.Quadtree.setCorrection">
+<code class="descname">setCorrection</code><span class="sig-paren">(</span><em>correction='mean'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#Quadtree.setCorrection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.Quadtree.setCorrection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set correction method calculating the standard deviation of
+instances <a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> s</p>
+<p>The standard deviation from <a class="reference internal" href="#kite.quadtree.QuadNode.displacement" title="kite.quadtree.QuadNode.displacement"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.displacement</span></code></a>
+is evaluated against different corrections:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">mean</span></code>: Mean is substracted</li>
+<li><code class="docutils literal"><span class="pre">median</span></code>: Median is substracted</li>
+<li><code class="docutils literal"><span class="pre">bilinear</span></code>: A 2D detrend is applied to the node</li>
+<li><code class="docutils literal"><span class="pre">std</span></code>:  Pure standard deviation without correction</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>correction</strong> (<em>str</em>) – Choose from methods
+<code class="docutils literal"><span class="pre">mean_std,</span> <span class="pre">median_std,</span> <span class="pre">bilinear_std,</span> <span class="pre">std</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">AttributeError</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.tile_size_max">
+<code class="descname">tile_size_max</code><a class="headerlink" href="#kite.Quadtree.tile_size_max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum allowed tile size in <em>meter</em>.
+Measured along long edge <code class="docutils literal"><span class="pre">(max(dE,</span> <span class="pre">dN))</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Returns the maximum allowed tile size</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Setter:</th><td class="field-body">Sets the maximum threshold</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.Quadtree.tile_size_min">
+<code class="descname">tile_size_min</code><a class="headerlink" href="#kite.Quadtree.tile_size_min" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum allowed tile size in <em>meter</em>.
+Measured along long edge <code class="docutils literal"><span class="pre">(max(dE,</span> <span class="pre">dN))</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Returns the minimum allowed tile size</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Setter:</th><td class="field-body">Sets the minimum threshold</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="the-quadtreeconfig">
+<h2>The QuadtreeConfig<a class="headerlink" href="#the-quadtreeconfig" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">QuadtreeConfig</span></code> holds the necessary configuration to reconstruct and save an instance.</p>
+<dl class="class">
+<dt id="kite.quadtree.QuadtreeConfig">
+<em class="property">class </em><code class="descclassname">kite.quadtree.</code><code class="descname">QuadtreeConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#QuadtreeConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.quadtree.QuadtreeConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quadtree configuration object holding essential parameters used to
+reconstruct a particular tree</p>
+<dl class="gattribute">
+<dt id="QuadtreeConfig.correction">
+<em class="property">♦ </em><code class="descname">correction</code><a class="headerlink" href="#QuadtreeConfig.correction" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code> (<code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.StringChoice</span></code>), <em>default:</em> <code class="docutils literal"><span class="pre">'median'</span></code></p>
+<p>Node correction for splitting, available methods  <code class="docutils literal"><span class="pre">['mean',</span> <span class="pre">'median',</span> <span class="pre">'bilinear',</span> <span class="pre">'std']</span></code></p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="QuadtreeConfig.epsilon">
+<em class="property">♦ </em><code class="descname">epsilon</code><a class="headerlink" href="#QuadtreeConfig.epsilon" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em></p>
+<p>Threshold for node splitting, measure for quadtree nodes’ variance</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="QuadtreeConfig.nan_allowed">
+<em class="property">♦ </em><code class="descname">nan_allowed</code><a class="headerlink" href="#QuadtreeConfig.nan_allowed" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.9</span></code></p>
+<p>Allowed NaN fraction per tile</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="QuadtreeConfig.tile_size_min">
+<em class="property">♦ </em><code class="descname">tile_size_min</code><a class="headerlink" href="#QuadtreeConfig.tile_size_min" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">250.0</span></code></p>
+<p>Minimum allowed tile size in <em>meter</em></p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="QuadtreeConfig.tile_size_max">
+<em class="property">♦ </em><code class="descname">tile_size_max</code><a class="headerlink" href="#QuadtreeConfig.tile_size_max" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">25000.0</span></code></p>
+<p>Maximum allowed tile size in <em>meter</em></p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="QuadtreeConfig.leaf_blacklist">
+<em class="property">♦ </em><code class="descname">leaf_blacklist</code><a class="headerlink" href="#QuadtreeConfig.leaf_blacklist" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.Any</span></code> objects, <em>optional</em>, <em>default:</em> <code class="docutils literal"><span class="pre">[]</span></code></p>
+<p>Blacklist of excluded leaves</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="the-quadnode-class">
+<h2>The QuadNode Class<a class="headerlink" href="#the-quadnode-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.quadtree.QuadNode">
+<em class="property">class </em><code class="descclassname">kite.quadtree.</code><code class="descname">QuadNode</code><span class="sig-paren">(</span><em>quadtree</em>, <em>llr</em>, <em>llc</em>, <em>length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#QuadNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.quadtree.QuadNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>A node (or <em>tile</em>) in held by <a class="reference internal" href="#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>. Each node in the
+tree hold a back reference to the quadtree and scene to access</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>llr</strong> (<em>int</em>) – Lower left corner row in <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>
+matrix.</li>
+<li><strong>llc</strong> (<em>int</em>) – Lower left corner column in <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code>
+matrix.</li>
+<li><strong>length</strong> (<em>int</em>) – Length of node in from <code class="docutils literal"><span class="pre">llr,</span> <span class="pre">llc</span></code> in both dimensions</li>
+<li><strong>id</strong> (<em>str</em>) – Unique id of node</li>
+<li><strong>children</strong> (List of <a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a>) – Node’s children</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.corr_bilinear">
+<code class="descname">corr_bilinear</code><a class="headerlink" href="#kite.quadtree.QuadNode.corr_bilinear" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Standard deviation of node’s displacement corrected for bilinear
+trend (2D)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.corr_mean">
+<code class="descname">corr_mean</code><a class="headerlink" href="#kite.quadtree.QuadNode.corr_mean" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Standard deviation of node’s displacement corrected for mean</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.corr_median">
+<code class="descname">corr_median</code><a class="headerlink" href="#kite.quadtree.QuadNode.corr_median" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Standard deviation of node’s displacement corrected for median</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.quadtree.QuadNode.createTree">
+<code class="descname">createTree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#QuadNode.createTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.quadtree.QuadNode.createTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create the tree from a set of basenodes, ignited by
+<a class="reference internal" href="#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> instance. Evaluates <a class="reference internal" href="#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>
+correction method and <a class="reference internal" href="#kite.Quadtree.epsilon_min" title="kite.Quadtree.epsilon_min"><code class="xref py py-attr docutils literal"><span class="pre">epsilon_min</span></code></a>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.displacement">
+<code class="descname">displacement</code><a class="headerlink" href="#kite.quadtree.QuadNode.displacement" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Displacement array, slice from <code class="xref py py-attr docutils literal"><span class="pre">kite.Scene.displacement</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.displacement_mask">
+<code class="descname">displacement_mask</code><a class="headerlink" href="#kite.quadtree.QuadNode.displacement_mask" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Displacement nan mask of
+<a class="reference internal" href="#kite.quadtree.QuadNode.displacement" title="kite.quadtree.QuadNode.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a>, dtype <code class="xref py py-class docutils literal"><span class="pre">numpy.bool</span></code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Faster to slice Scene.displacement_mask?</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.displacement_masked">
+<code class="descname">displacement_masked</code><a class="headerlink" href="#kite.quadtree.QuadNode.displacement_masked" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Masked displacement,
+see <a class="reference internal" href="#kite.quadtree.QuadNode.displacement" title="kite.quadtree.QuadNode.displacement"><code class="xref py py-attr docutils literal"><span class="pre">displacement</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.focal_point">
+<code class="descname">focal_point</code><a class="headerlink" href="#kite.quadtree.QuadNode.focal_point" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Node focal point in local coordinates respecting NaN values</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">tuple, float - (easting, northing)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.gridE">
+<code class="descname">gridE</code><a class="headerlink" href="#kite.quadtree.QuadNode.gridE" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Grid holding local east coordinates,
+see <a class="reference internal" href="kite.scene.html#kite.scene.Frame.gridE" title="kite.scene.Frame.gridE"><code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.gridE</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.gridN">
+<code class="descname">gridN</code><a class="headerlink" href="#kite.quadtree.QuadNode.gridN" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Grid holding local north coordinates,
+see <a class="reference internal" href="kite.scene.html#kite.scene.Frame.gridN" title="kite.scene.Frame.gridN"><code class="xref py py-attr docutils literal"><span class="pre">kite.scene.Frame.gridN</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.13)"><code class="xref py py-class docutils literal"><span class="pre">numpy.ndarray</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.quadtree.QuadNode.iterChildren">
+<code class="descname">iterChildren</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#QuadNode.iterChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.quadtree.QuadNode.iterChildren" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator over the all children.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">Children of it’s own.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.quadtree.QuadNode.iterLeafs">
+<code class="descname">iterLeafs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/quadtree.html#QuadNode.iterLeafs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.quadtree.QuadNode.iterLeafs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterator over the leaves, evaluating parameters from
+<a class="reference internal" href="#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body">Leafs fullfilling the tree’s parameters.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.llE">
+<code class="descname">llE</code><a class="headerlink" href="#kite.quadtree.QuadNode.llE" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Lower left east coordinate in local coordinates (<em>meter</em>).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.llN">
+<code class="descname">llN</code><a class="headerlink" href="#kite.quadtree.QuadNode.llN" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Lower left north coordinate in local coordinates (<em>meter</em>).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.mean">
+<code class="descname">mean</code><a class="headerlink" href="#kite.quadtree.QuadNode.mean" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Mean displacement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.median">
+<code class="descname">median</code><a class="headerlink" href="#kite.quadtree.QuadNode.median" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Median displacement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.nan_fraction">
+<code class="descname">nan_fraction</code><a class="headerlink" href="#kite.quadtree.QuadNode.nan_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Fraction of NaN values within the tile</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.phi">
+<code class="descname">phi</code><a class="headerlink" href="#kite.quadtree.QuadNode.phi" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Median Phi angle, see <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.sizeE">
+<code class="descname">sizeE</code><a class="headerlink" href="#kite.quadtree.QuadNode.sizeE" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Size in eastern direction in <em>meters</em>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.sizeN">
+<code class="descname">sizeN</code><a class="headerlink" href="#kite.quadtree.QuadNode.sizeN" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Getter:</th><td class="field-body">Size in northern direction in <em>meters</em>.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.std">
+<code class="descname">std</code><a class="headerlink" href="#kite.quadtree.QuadNode.std" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Standard deviation of displacement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.theta">
+<code class="descname">theta</code><a class="headerlink" href="#kite.quadtree.QuadNode.theta" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Median Theta angle, see <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></a>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.var">
+<code class="descname">var</code><a class="headerlink" href="#kite.quadtree.QuadNode.var" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Variance of displacement</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.quadtree.QuadNode.weight">
+<code class="descname">weight</code><a class="headerlink" href="#kite.quadtree.QuadNode.weight" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body">Absolute weight derived from <a class="reference internal" href="kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">kite.Covariance</span></code></a>
+- works on tree leaves only.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kite.covariance.html" title="The Covariance Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kite.scene.html" title="The Scene Module"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

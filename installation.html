@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Installation &#8212; Kite  documentation</title>
-    
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -26,7 +22,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="next" title="Programming Examples" href="examples/index.html" />
     <link rel="prev" title="Kite Manual" href="index.html" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
@@ -39,7 +35,7 @@
     
 
   </head>
-  <body role="document">
+  <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -69,9 +65,20 @@ sudo pip install .
 <div class="section" id="macos-sierra-macports">
 <h2>MacOS (Sierra, MacPorts)<a class="headerlink" href="#macos-sierra-macports" title="Permalink to this headline">¶</a></h2>
 <p>Install without root, installing <cite>pyrocko</cite> is a prerequisite. Please visit <a class="reference external" href="http://pyrocko.org/v0.3/install_mac.html">http://pyrocko.org/v0.3/install_mac.html</a></p>
-<div class="highlight-sh"><div class="highlight"><pre><span></span>git clone https://gitext.gfz-potsdam.de/isken/kite.git
+<div class="highlight-sh"><div class="highlight"><pre><span></span>    sudo port install git
+    sudo port install python27
+    sudo port <span class="k">select</span> python python27
+    sudo port install py27-numpy
+    sudo port install py27-scipy
+    sudo port install py27-matplotlib
+    sudo port install py27-yaml
+    sudo port install py27-pyside
+    sudo port install py27-setuptools
+    /opt/local/bin/easy_install-2.7 --user pyavl
+
+git clone https://gitext.gfz-potsdam.de/isken/kite.git
 <span class="nb">cd</span> kite
-python setup.py --user --install-scripts<span class="o">=</span>/usr/local/bin
+python setup.py install --user --install-scripts<span class="o">=</span>/usr/local/bin
 </pre></div>
 </div>
 </div>
@@ -93,7 +100,7 @@ python setup.py --user --install-scripts<span class="o">=</span>/usr/local/bin
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="examples.html" title="Examples"
+          <a href="examples/index.html" title="Programming Examples"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Kite Manual"

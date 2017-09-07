@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Spool (GUI) &#8212; Kite  documentation</title>
-    
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -26,8 +22,8 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Module Reference" href="modules.html" />
-    <link rel="prev" title="Covariance calculation" href="examples_04-covariance.html" />
+    <link rel="next" title="Talpa Static Displacement Modelling (GUI)" href="talpa.html" />
+    <link rel="prev" title="Covariance calculation" href="examples/04-covariance.html" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
     <meta name="viewport" content="width=device-width,initial-scale=0.8">
@@ -39,7 +35,7 @@
     
 
   </head>
-  <body role="document">
+  <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -55,18 +51,18 @@
           <div class="body" role="main">
             
   <div class="section" id="spool-gui">
-<h1>Spool (GUI)<a class="headerlink" href="#spool-gui" title="Permalink to this headline">¶</a></h1>
+<h1><code class="docutils literal"><span class="pre">Spool</span></code> (GUI)<a class="headerlink" href="#spool-gui" title="Permalink to this headline">¶</a></h1>
 <p>InSAR displacement scenes are complex visual datasets, the <code class="docutils literal"><span class="pre">Spool</span></code> user interface offers interactive and intuitive analysis and <strong>parametrization</strong> of all aspects of the container</p>
 <blockquote>
 <div><ul class="simple">
-<li><a class="reference internal" href="kite.scene.html"><span class="doc">The Scene Module</span></a>,</li>
-<li><a class="reference internal" href="kite.quadtree.html"><span class="doc">The Quadtree Module</span></a></li>
-<li>and <a class="reference internal" href="kite.covariance.html"><span class="doc">The Covariance Module</span></a></li>
+<li><a class="reference internal" href="reference/kite.scene.html"><span class="doc">The Scene Module</span></a>,</li>
+<li><a class="reference internal" href="reference/kite.quadtree.html"><span class="doc">The Quadtree Module</span></a></li>
+<li>and <a class="reference internal" href="reference/kite.covariance.html"><span class="doc">The Covariance Module</span></a></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Naming conventions in the GUI represent the <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene</span></code></a> syntax!</p>
+<p class="last">Naming conventions in the GUI represent the <a class="reference internal" href="reference/kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene</span></code></a> syntax!</p>
 </div>
 <p>A usage scenario for the scenario could look like this - start the GUI:</p>
 <div class="highlight-sh"><div class="highlight"><pre><span></span>spool test/data/20110214_20110401_ml4_sm.unw.geo_ig_dsc_ionnocorr.mat
@@ -76,9 +72,9 @@
 <p class="first admonition-title">Note</p>
 <p class="last">The dataset <code class="file docutils literal"><span class="pre">test/data/20110214_20110401_ml4_sm.unw.geo_ig_dsc_ionnocorr.mat</span></code> is part of the <a class="reference external" href="https://github.com/pyrocko/kite">Github repositorium</a>.</p>
 </div>
-<p>Parametrization of the <a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> and <a class="reference internal" href="kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a> through the interface is shown in the latter paragraphs of this page.
-From <strong class="command">spool</strong> one can save the scene and it&#8217;s quadtree and covariance parametrization through <span class="menuselection">File ‣ <span class="accelerator">S</span>ave Scene</span>. Let&#8217;s save the scene as <code class="file docutils literal"><span class="pre">/tmp/myanmar_2011.[npz,yml]</span></code>.</p>
-<p>Now we can utilize <code class="docutils literal"><span class="pre">kite</span></code>&#8216;s python framework to work with the subsampled quadtree and errors/weights.</p>
+<p>Parametrization of the <a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> and <a class="reference internal" href="reference/kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a> through the interface is shown in the latter paragraphs of this page.
+From <strong class="command">spool</strong> one can save the scene and it’s quadtree and covariance parametrization through <span class="menuselection">File ‣ <span class="accelerator">S</span>ave Scene</span>. Let’s save the scene as <code class="file docutils literal"><span class="pre">/tmp/myanmar_2011.[npz,yml]</span></code>.</p>
+<p>Now we can utilize <code class="docutils literal"><span class="pre">kite</span></code>’s python framework to work with the subsampled quadtree and errors/weights.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="kn">import</span> <span class="n">Scene</span>
 <span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/tmp/myanmar_2011.yml&#39;</span><span class="p">)</span>
 
@@ -97,42 +93,42 @@ From <strong class="command">spool</strong> one can save the scene and it&#8217;
         <span class="n">cross_weights</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">l1</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">l2</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">w</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="section" id="displacement">
-<h2>Displacement<a class="headerlink" href="#displacement" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="los-displacement-inspection">
+<h2>LOS Displacement inspection<a class="headerlink" href="#los-displacement-inspection" title="Permalink to this headline">¶</a></h2>
 <p>The first tab offers simple data inspection of plain parameters. From the side menu we can choose displacement, <abbr title="LOS">Line of Sight</abbr> incident angles and unit their georeferenced unit vectors. <span class="guilabel">display</span> offers the components <code class="docutils literal"><span class="pre">displacement,</span> <span class="pre">phi,</span> <span class="pre">theta,</span> <span class="pre">thetaDeg,</span> <span class="pre">degPhi,</span> <span class="pre">unitE,</span> <span class="pre">unitN,</span> <span class="pre">unitU</span></code>.</p>
 <div class="figure" id="id2">
 <img alt="InSAR unwrapped displacement scene from Myanmar 2011 earthquake event" src="_images/spool-scene.png" />
 <p class="caption"><span class="caption-text">An unwrapped InSAR displacement scene from a 2011 Myanmar strike-slip event (Sudhaus and Gomba, 2016 <a class="footnote-reference" href="#f1" id="id1">[1]</a>). Red color shows displacement away from the satellite, blue displacement towards LOS.</span></p>
 </div>
 </div>
-<div class="section" id="quadtree">
-<h2>Quadtree<a class="headerlink" href="#quadtree" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> subsamples the InSAR displacement in order to have a reduced and thus more manageable dataset for modelling.</p>
-<p>The four parameters characterizing the quadtree can be controlled through the gui (see also <a class="reference internal" href="examples_03-quadtree.html"><span class="doc">Quadtree parametrisation</span></a>)</p>
+<div class="section" id="quadtree-manipulation">
+<span id="spool-quadtree"></span><h2>Quadtree manipulation<a class="headerlink" href="#quadtree-manipulation" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> subsamples the InSAR displacement in order to have a reduced and thus more manageable dataset for modelling.</p>
+<p>The four parameters characterizing the quadtree can be controlled through the gui (see also <a class="reference internal" href="examples/03-quadtree.html"><span class="doc">Quadtree Parametrisation</span></a>)</p>
 <ul class="simple">
-<li>epsilon/std threshold (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a>)</li>
-<li>Fraction of NaN values within (<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.nan_allowed" title="kite.Quadtree.nan_allowed"><code class="xref py py-attr docutils literal"><span class="pre">nan_allowed</span></code></a>)</li>
+<li>epsilon/std threshold (<a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a>)</li>
+<li>Fraction of NaN values within (<a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree.nan_allowed" title="kite.Quadtree.nan_allowed"><code class="xref py py-attr docutils literal"><span class="pre">nan_allowed</span></code></a>)</li>
 <li>Maximum and minium dimension of the tile
-(<a class="reference internal" href="kite.quadtree.html#kite.Quadtree.tile_size_max" title="kite.Quadtree.tile_size_max"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_max</span></code></a> and <a class="reference internal" href="kite.quadtree.html#kite.Quadtree.tile_size_min" title="kite.Quadtree.tile_size_min"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_min</span></code></a>)</li>
+(<a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree.tile_size_max" title="kite.Quadtree.tile_size_max"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_max</span></code></a> and <a class="reference internal" href="reference/kite.quadtree.html#kite.Quadtree.tile_size_min" title="kite.Quadtree.tile_size_min"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_min</span></code></a>)</li>
 </ul>
 <div class="figure" id="id3">
 <img alt="Quadtree parametrization and properties" src="_images/spool-quadtree_mean.png" />
-<p class="caption"><span class="caption-text">Interactive quadtree parametrization through the <strong class="command">spool</strong> GUI. Shown here is the mean displacement of the leafs (<a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode.mean" title="kite.quadtree.QuadNode.mean"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.mean</span></code></a>).</span></p>
+<p class="caption"><span class="caption-text">Interactive quadtree parametrization through the <strong class="command">spool</strong> GUI. Shown here is the mean displacement of the leafs (<a class="reference internal" href="reference/kite.quadtree.html#kite.quadtree.QuadNode.mean" title="kite.quadtree.QuadNode.mean"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.mean</span></code></a>).</span></p>
 </div>
-<p>To get a feel for the covariance and error estimation we can have a look at the absolute weights of the leafs (see <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode.weight" title="kite.quadtree.QuadNode.weight"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.weight</span></code></a> or <a class="reference internal" href="kite.covariance.html#kite.Covariance.getLeafWeight" title="kite.Covariance.getLeafWeight"><code class="xref py py-func docutils literal"><span class="pre">kite.Covariance.getLeafWeight()</span></code></a>).</p>
+<p>To get a feel for the covariance and error estimation we can have a look at the absolute weights of the leafs (see <a class="reference internal" href="reference/kite.quadtree.html#kite.quadtree.QuadNode.weight" title="kite.quadtree.QuadNode.weight"><code class="xref py py-attr docutils literal"><span class="pre">kite.quadtree.QuadNode.weight</span></code></a> or <a class="reference internal" href="reference/kite.covariance.html#kite.Covariance.getLeafWeight" title="kite.Covariance.getLeafWeight"><code class="xref py py-func docutils literal"><span class="pre">kite.Covariance.getLeafWeight()</span></code></a>).</p>
 <div class="figure" id="id4">
 <img alt="Quadtree nodes with associated errors/weights derived from kite.Covariance" src="_images/spool-quadtree_weight.png" />
-<p class="caption"><span class="caption-text">Absolute weight of each <a class="reference internal" href="kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> derived from <a class="reference internal" href="kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a>. Yellow is low weight, blue are higher weighted leafs.</span></p>
+<p class="caption"><span class="caption-text">Absolute weight of each <a class="reference internal" href="reference/kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> derived from <a class="reference internal" href="reference/kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a>. Yellow is low weight, blue are higher weighted leafs.</span></p>
 </div>
 </div>
-<div class="section" id="covariance">
-<h2>Covariance<a class="headerlink" href="#covariance" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="covariance-parametrisation">
+<span id="spool-covariance"></span><h2>Covariance parametrisation<a class="headerlink" href="#covariance-parametrisation" title="Permalink to this headline">¶</a></h2>
 <p>The covariance of the InSAR scene is a measure for the noise which affects our deformation signal. In order to generate a reasonable geodynamic model we need to quantify the contribution of noise to our signal. A common model for the noise contributionin satellite interferometry is:</p>
 <div class="math">
 <p><img src="_images/math/48e5a41fa95fbddf1145ee3faa24868c756cfa1c.svg" alt="d_{total} = d_{signal} + [d_{atmosphere} + d_{topography} + d_{err_baseline} + d_{other}]"/></p>
 </div><div class="figure" id="id5">
 <img alt="Covariance parametrization through spool GUI" src="_images/spool-covariance.png" />
-<p class="caption"><span class="caption-text">Covariance parametrization through the GUI. The center panels shows the noise selector (green), the 2D plots illustrate (from top) <a class="reference internal" href="kite.covariance.html#kite.Covariance.covariance_func" title="kite.Covariance.covariance_func"><code class="xref py py-attr docutils literal"><span class="pre">covariance_func</span></code></a>, <a class="reference internal" href="kite.covariance.html#kite.Covariance.structure_func" title="kite.Covariance.structure_func"><code class="xref py py-attr docutils literal"><span class="pre">structure_func</span></code></a> and the <code class="xref py py-func docutils literal"><span class="pre">noiseSpectrum()</span></code>.</span></p>
+<p class="caption"><span class="caption-text">Covariance parametrization through the GUI. The center panels shows the noise selector (green), the 2D plots illustrate (from top) <a class="reference internal" href="reference/kite.covariance.html#kite.Covariance.covariance_func" title="kite.Covariance.covariance_func"><code class="xref py py-attr docutils literal"><span class="pre">covariance_func</span></code></a>, <a class="reference internal" href="reference/kite.covariance.html#kite.Covariance.structure_func" title="kite.Covariance.structure_func"><code class="xref py py-attr docutils literal"><span class="pre">structure_func</span></code></a> and the <code class="xref py py-func docutils literal"><span class="pre">noiseSpectrum()</span></code>.</span></p>
 </div>
 <div class="figure align-center" id="id6">
 <a class="reference internal image-reference" href="_images/spool-covariance_noise.png"><img alt="Noise patch used for covariance/error analysis" src="_images/spool-covariance_noise.png" style="width: 50%;" /></a>
@@ -164,10 +160,10 @@ From <strong class="command">spool</strong> one can save the scene and it&#8217;
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="modules.html" title="Module Reference"
+          <a href="talpa.html" title="Talpa Static Displacement Modelling (GUI)"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="examples_04-covariance.html" title="Covariance calculation"
+          <a href="examples/04-covariance.html" title="Covariance calculation"
              accesskey="P">previous</a> |</li>
       </ul>
     </div>

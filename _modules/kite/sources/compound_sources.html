@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>kite.sources.compound_sources &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.sources.compound_sources</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">compound_engine</span> <span class="k">as</span> <span class="n">ce</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">SandboxSource</span><span class="p">,</span> <span class="n">SourceProcessor</span>
+<span class="kn">from</span> <span class="nn">pyrocko.guts</span> <span class="k">import</span> <span class="n">Float</span>
+
+<span class="n">d2r</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.</span>
+<span class="n">r2d</span> <span class="o">=</span> <span class="mf">180.</span> <span class="o">/</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">km</span> <span class="o">=</span> <span class="mf">1e3</span>
+
+
+<div class="viewcode-block" id="EllipsoidSource"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.EllipsoidSource">[docs]</a><span class="k">class</span> <span class="nc">EllipsoidSource</span><span class="p">(</span><span class="n">SandboxSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;CompoundModel&#39;</span>
+
+    <span class="n">length_x</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Length of x semi-axis of ellisoid before rotation in [m]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">length_y</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Length of y semi-axis of ellisoid before rotation in [m]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">length_z</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Length of z semi-axis of ellisoid before rotation in [m]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">rotation_x</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around x-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">rotation_y</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around y-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">rotation_z</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around z-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Shear modulus, 2. Lame constant in [GPa]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">8.</span><span class="p">,)</span>
+    <span class="n">lamda</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Lame constant in [GPa]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">8.</span><span class="p">)</span>
+    <span class="n">cavity_pressure</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pressure on the cavity walls in [GPa]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">K</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">/</span> <span class="mi">3</span>  <span class="c1"># Bulk Modulus</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="mf">4.</span><span class="o">/</span><span class="mi">3</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_x</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_y</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_z</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cavity_pressure</span> <span class="o">*</span> <span class="n">V</span><span class="p">)</span> <span class="o">/</span> <span class="n">K</span>
+        <span class="k">return</span> <span class="n">V</span>
+
+    <span class="k">def</span> <span class="nf">ECMParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;y0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;z0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;rotx&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_x</span><span class="p">,</span>
+            <span class="s1">&#39;roty&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_y</span><span class="p">,</span>
+            <span class="s1">&#39;rotz&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_z</span><span class="p">,</span>
+            <span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_x</span><span class="p">,</span>
+            <span class="s1">&#39;ay&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_y</span><span class="p">,</span>
+            <span class="s1">&#39;az&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length_z</span><span class="p">,</span>
+            <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cavity_pressure</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span>
+            <span class="s1">&#39;mu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">*</span> <span class="mf">1e9</span><span class="p">,</span>
+            <span class="s1">&#39;lamda&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lamda</span> <span class="o">*</span> <span class="mf">1e9</span>
+        <span class="p">}</span></div>
+        <span class="k">return</span> <span class="n">params</span>
+
+
+<div class="viewcode-block" id="PointCompoundSource"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PointCompoundSource">[docs]</a><span class="k">class</span> <span class="nc">PointCompoundSource</span><span class="p">(</span><span class="n">SandboxSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;CompoundModel&#39;</span>
+
+    <span class="n">rotation_x</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around x-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">rotation_y</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around y-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">rotation_z</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Clockwise rotation of ellipsoid around z-axis in [deg]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">dVx</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Volume change in x-plane in [m3]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">dVy</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Volume change in y-plane in [m3]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">dVz</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Volume change in z-plane in [m3]&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">nu</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Poisson</span><span class="se">\&#39;</span><span class="s1">s ratio, typically 0.25&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># After Nikkhoo, M et al. 2017</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dVx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dVy</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dVz</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1.8</span>
+
+    <span class="k">def</span> <span class="nf">pointCDMParameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;y0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;z0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;rotx&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_x</span><span class="p">,</span>
+            <span class="s1">&#39;roty&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_y</span><span class="p">,</span>
+            <span class="s1">&#39;rotz&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotation_z</span><span class="p">,</span>
+            <span class="s1">&#39;dVx&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dVx</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;dVy&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dVy</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;dVz&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dVz</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;nu&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span>
+        <span class="p">}</span></div>
+        <span class="k">return</span> <span class="n">params</span>
+
+
+<span class="k">class</span> <span class="nc">CompoundModelProcessor</span><span class="p">(</span><span class="n">SourceProcessor</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;CompoundModel&#39;</span>
+
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;processor_profile&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
+            <span class="s1">&#39;displacement.e&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="s1">&#39;displacement.n&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="s1">&#39;displacement.d&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">EllipsoidSource</span><span class="p">):</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">ce</span><span class="o">.</span><span class="n">ECM</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">src</span><span class="o">.</span><span class="n">ECMParameters</span><span class="p">())</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">PointCompoundSource</span><span class="p">):</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">ce</span><span class="o">.</span><span class="n">pointCDM</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">src</span><span class="o">.</span><span class="n">pointCDMParameters</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Source of wrong type!&#39;</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

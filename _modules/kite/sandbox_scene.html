@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>kite.sandbox_scene &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.sandbox_scene</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span> <span class="k">as</span> <span class="n">op</span>
+
+<span class="kn">from</span> <span class="nn">pyrocko.guts</span> <span class="k">import</span> <span class="n">Object</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Int</span><span class="p">,</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">pyrocko</span> <span class="k">import</span> <span class="n">guts</span>
+
+<span class="kn">from</span> <span class="nn">kite.util</span> <span class="k">import</span> <span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span>
+<span class="kn">from</span> <span class="nn">kite.scene</span> <span class="k">import</span> <span class="n">BaseScene</span><span class="p">,</span> <span class="n">FrameConfig</span>
+
+<span class="c1"># Import the modeling backends</span>
+<span class="kn">from</span> <span class="nn">kite.sources</span> <span class="k">import</span> <span class="p">(</span><span class="n">DislocProcessor</span><span class="p">,</span> <span class="n">PyrockoProcessor</span><span class="p">,</span>
+                          <span class="n">CompoundModelProcessor</span><span class="p">)</span>
+
+
+<span class="n">__processors__</span> <span class="o">=</span> <span class="p">[</span><span class="n">DislocProcessor</span><span class="p">,</span> <span class="n">PyrockoProcessor</span><span class="p">,</span> <span class="n">CompoundModelProcessor</span><span class="p">]</span>
+<span class="n">km</span> <span class="o">=</span> <span class="mf">1e3</span>
+
+
+<div class="viewcode-block" id="SandboxSceneConfig"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxSceneConfig">[docs]</a><span class="k">class</span> <span class="nc">SandboxSceneConfig</span><span class="p">(</span><span class="n">Object</span><span class="p">):</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">FrameConfig</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">FrameConfig</span><span class="p">(),</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Frame/reference configuration&#39;</span><span class="p">)</span>
+    <span class="n">extent_north</span> <span class="o">=</span> <span class="n">Int</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Model size towards north in [px]&#39;</span><span class="p">)</span>
+    <span class="n">extent_east</span> <span class="o">=</span> <span class="n">Int</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Model size towards east in [px]&#39;</span><span class="p">)</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="n">List</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List of sources&#39;</span><span class="p">)</span>
+    <span class="n">reference_scene</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span></div>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Reference kite.Scene container&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SandboxScene"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene">[docs]</a><span class="k">class</span> <span class="nc">SandboxScene</span><span class="p">(</span><span class="n">BaseScene</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evModelUpdated</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evConfigChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="k">if</span> <span class="n">config</span> <span class="k">else</span> <span class="n">SandboxSceneConfig</span><span class="p">()</span>
+        <span class="n">BaseScene</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">]:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setExtent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">extent_east</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">extent_north</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reference_scene</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadReferenceScene</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reference_scene</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :returns: List of sources attached sandbox</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">sources</span>
+
+<div class="viewcode-block" id="SandboxScene.setExtent"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.setExtent">[docs]</a>    <span class="k">def</span> <span class="nf">setExtent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set the sandbox&#39;s extend in pixels</span>
+
+<span class="sd">        :param east: Pixels in East</span>
+<span class="sd">        :type east: int</span>
+<span class="sd">        :param north: Pixels in North</span>
+<span class="sd">        :type north: int</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Cannot change a referenced model!&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Changing model extent to </span><span class="si">%d</span><span class="s1"> px by </span><span class="si">%d</span><span class="s1"> px&#39;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="n">east</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="n">north</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">north</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">east</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">_updateExtent</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">displacement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Displacement in LOS &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processSources</span><span class="p">()</span>
+        <span class="n">los_factors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">los_rotation_factors</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_displacement</span> <span class="o">=</span>\
+            <span class="p">(</span><span class="n">los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">+</span>
+             <span class="n">los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">east</span> <span class="o">+</span>
+             <span class="n">los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_displacement</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">max_horizontal_displacement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Maximum horizontal displacement &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">east</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SandboxScene.addSource"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.addSource">[docs]</a>    <span class="k">def</span> <span class="nf">addSource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Add displacement source to sandbox</span>
+
+<span class="sd">        :param source: Displacment Source</span>
+<span class="sd">        :type source: :class:`kite.sources.meta.SandboxSource`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> added&#39;</span> <span class="o">%</span> <span class="n">source</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">evParametersChanged</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">)</span>
+</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SandboxScene.removeSource"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.removeSource">[docs]</a>    <span class="k">def</span> <span class="nf">removeSource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Remove displacement source to sandbox</span>
+
+<span class="sd">        :param source: Displacment Source</span>
+<span class="sd">        :type source: :class:`kite.sources.meta.SandboxSource`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">evParametersChanged</span><span class="o">.</span><span class="n">unsubscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> removed&#39;</span> <span class="o">%</span> <span class="n">source</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">del</span> <span class="n">source</span>
+</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SandboxScene.processSources"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.processSources">[docs]</a>    <span class="k">def</span> <span class="nf">processSources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Process displacement sources and update displacements &#39;&#39;&#39;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">coordinates</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">north</span> <span class="o">+=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;north&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">east</span> <span class="o">+=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;east&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down</span> <span class="o">+=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;down&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">processCustom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">result_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">result_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+                <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;north&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s1">&#39;east&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                       <span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">)])</span>
+
+        <span class="n">avail_processors</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">proc</span> <span class="ow">in</span> <span class="n">__processors__</span><span class="p">:</span>
+            <span class="n">avail_processors</span><span class="p">[</span><span class="n">proc</span><span class="o">.</span><span class="n">__implements__</span><span class="p">]</span> <span class="o">=</span> <span class="n">proc</span>
+
+        <span class="k">for</span> <span class="n">impl</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">([</span><span class="n">src</span><span class="o">.</span><span class="n">__implements__</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]):</span>
+            <span class="n">proc_sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">src</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span>
+                            <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">__implements__</span> <span class="o">==</span> <span class="n">impl</span><span class="p">]</span>
+            <span class="n">processor</span> <span class="o">=</span> <span class="n">avail_processors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">impl</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">processor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="s1">&#39;Could not find source processor for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">impl</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+            <span class="n">proc_result</span> <span class="o">=</span> <span class="n">processor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+                <span class="n">proc_sources</span><span class="p">,</span>
+                <span class="n">coordinates</span><span class="p">,</span>
+                <span class="n">nthreads</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Processed </span><span class="si">%s</span><span class="s1"> (nsources:</span><span class="si">%d</span><span class="s1">) using </span><span class="si">%s</span><span class="s1"> [</span><span class="si">%.4f</span><span class="s1"> s]&#39;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">proc_sources</span><span class="p">),</span>
+                               <span class="n">processor</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;north&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">proc_result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;east&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">proc_result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;down&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">proc_result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+<div class="viewcode-block" id="SandboxScene.loadReferenceScene"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.loadReferenceScene">[docs]</a>    <span class="k">def</span> <span class="nf">loadReferenceScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load a reference kite scene container into the sandbox</span>
+
+<span class="sd">        :param filename: filename of the scene container to load [.npy, .yml]</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="kn">from</span> <span class="nn">.scene</span> <span class="k">import</span> <span class="n">Scene</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loading reference scene from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="n">scene</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setReferenceScene</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">reference_scene</span> <span class="o">=</span> <span class="n">filename</span>
+
+<div class="viewcode-block" id="SandboxScene.setReferenceScene"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.setReferenceScene">[docs]</a>    <span class="k">def</span> <span class="nf">setReferenceScene</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set a reference scene</span>
+
+<span class="sd">        :param scene: Kite scene</span>
+<span class="sd">        :type scene: :class:`kite.Scene`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">_updateConfig</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setExtent</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">scene</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">phi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="n">Reference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reference scene set to scene.id:</span><span class="si">%s</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">scene_id</span><span class="p">)</span>
+</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clearModel</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SandboxScene.getKiteScene"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.getKiteScene">[docs]</a>    <span class="k">def</span> <span class="nf">getKiteScene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return a :class:`kite.Scene` from current model.</span>
+
+<span class="sd">        :returns: Scene</span>
+<span class="sd">        :rtype: :class:`Scene`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="kn">from</span> <span class="nn">.scene</span> <span class="k">import</span> <span class="n">Scene</span><span class="p">,</span> <span class="n">SceneConfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating kite.Scene from SandboxScene&#39;</span><span class="p">)</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">SceneConfig</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">scene_id</span> <span class="o">=</span> <span class="s1">&#39;Exported SandboxScene&#39;</span>
+
+        <span class="k">return</span> <span class="n">Scene</span><span class="p">(</span>
+            <span class="n">displacement</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displacement</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span>
+            <span class="n">phi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">,</span></div>
+            <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_clearModel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">north</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">east</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">down</span><span class="p">]:</span>
+            <span class="n">arr</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">displacement</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_horizontal_displacement</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">evModelUpdated</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SandboxScene.save"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Save the sandbox as kite scene container</span>
+
+<span class="sd">        :param filename: filename to save under</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">_file</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.yml&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.yml&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving model scene to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">regularize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span></div>
+                         <span class="n">header</span><span class="o">=</span><span class="s1">&#39;kite.SandboxScene YAML Config&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SandboxScene.load"><a class="viewcode-back" href="../../reference/kite.sandboxscene.html#kite.sandbox_scene.SandboxScene.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load a :class:`kite.SandboxScene`</span>
+
+<span class="sd">        :param filename: Config file to load [.yml]</span>
+<span class="sd">        :type filename: str</span>
+<span class="sd">        :returns: A sandbox from config file</span>
+<span class="sd">        :rtype: :class:`kite.SandboxScene`</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">sandbox_scene</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loading config from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">sources</span><span class="p">:</span>
+            <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">source</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="n">sandbox_scene</span>
+
+
+<span class="k">class</span> <span class="nc">Reference</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">scene</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">evModelUpdated</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_clearRefence</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_clearRefence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">difference</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">displacement</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">displacement</span>
+
+    <span class="k">def</span> <span class="nf">optimizeSource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">optimize</span>
+
+        <span class="n">quadtree</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">quadtree</span>
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="n">quadtree</span><span class="o">.</span><span class="n">leaf_coordinates</span>
+        <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sources</span>
+
+        <span class="n">model_result</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">coordinates</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;north&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;east&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+                   <span class="p">(</span><span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">float64</span><span class="p">)])</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="s1">&#39;We can optimize single, individual sources only!&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">source</span><span class="o">.</span><span class="n">evParametersChanged</span><span class="o">.</span><span class="n">mute</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">misfit</span><span class="p">(</span><span class="n">model_displacement</span><span class="p">,</span> <span class="n">lp_norm</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">lp_norm</span>
+            <span class="n">mf</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+                <span class="n">num</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leaf_medians</span> <span class="o">-</span> <span class="n">model_displacement</span><span class="p">)</span><span class="o">**</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="mf">1.</span><span class="o">/</span><span class="n">p</span>
+            <span class="k">return</span> <span class="n">mf</span>
+
+        <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">setParametersArray</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">processCustom</span><span class="p">(</span>
+                <span class="n">coordinates</span><span class="p">,</span> <span class="p">[</span><span class="n">source</span><span class="p">],</span> <span class="n">model_result</span><span class="p">)</span>
+
+            <span class="n">model_displacement</span> <span class="o">=</span>\
+                <span class="p">(</span><span class="n">quadtree</span><span class="o">.</span><span class="n">leaf_los_rotation_factors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="n">res</span><span class="p">[</span><span class="s1">&#39;down&#39;</span><span class="p">]</span> <span class="o">+</span>
+                 <span class="n">quadtree</span><span class="o">.</span><span class="n">leaf_los_rotation_factors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;east&#39;</span><span class="p">]</span> <span class="o">+</span>
+                 <span class="n">quadtree</span><span class="o">.</span><span class="n">leaf_los_rotation_factors</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;north&#39;</span><span class="p">])</span>
+            <span class="n">mf</span> <span class="o">=</span> <span class="n">misfit</span><span class="p">(</span><span class="n">model_displacement</span><span class="p">)</span>
+
+            <span class="n">model_result</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">mf</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">optimize</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+            <span class="n">kernel</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">.</span><span class="n">getParametersArray</span><span class="p">(),</span>
+            <span class="n">method</span><span class="o">=</span><span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">constraints</span><span class="o">=</span><span class="p">(),</span>
+            <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;disp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s1">&#39;iprint&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s1">&#39;eps&#39;</span><span class="p">:</span> <span class="mf">1.4901161193847656e-04</span><span class="p">,</span>
+                <span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                <span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-06</span><span class="p">})</span>
+
+        <span class="n">source</span><span class="o">.</span><span class="n">evParametersChanged</span><span class="o">.</span><span class="n">unmute</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setParametersArray</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">class</span> <span class="nc">TestSandboxScene</span><span class="p">(</span><span class="n">SandboxScene</span><span class="p">):</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">randomOkada</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">nsources</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.sources</span> <span class="k">import</span> <span class="n">OkadaSource</span>
+        <span class="n">sandbox_scene</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">r</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
+                <span class="n">lo</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="n">hi</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">nsources</span><span class="p">):</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">r</span><span class="p">(</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">15000</span><span class="p">)</span>
+            <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span>
+                <span class="n">OkadaSource</span><span class="p">(</span>
+                    <span class="n">easting</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">E</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">-</span><span class="n">length</span><span class="p">),</span>
+                    <span class="n">northing</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">N</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">-</span><span class="n">length</span><span class="p">),</span>
+                    <span class="n">depth</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8000</span><span class="p">),</span>
+                    <span class="n">strike</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">),</span>
+                    <span class="n">dip</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">),</span>
+                    <span class="n">slip</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                    <span class="n">rake</span><span class="o">=</span><span class="n">r</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">),</span>
+                    <span class="n">length</span><span class="o">=</span><span class="n">length</span><span class="p">,</span>
+                    <span class="n">width</span><span class="o">=</span><span class="mf">15.</span> <span class="o">*</span> <span class="n">length</span><span class="o">**.</span><span class="mi">66</span><span class="p">,))</span>
+        <span class="k">return</span> <span class="n">sandbox_scene</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">simpleOkada</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.sources</span> <span class="k">import</span> <span class="n">OkadaSource</span>
+        <span class="n">sandbox_scene</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;easting&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+            <span class="s1">&#39;northing&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+            <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s1">&#39;strike&#39;</span><span class="p">:</span> <span class="mf">180.</span><span class="p">,</span>
+            <span class="s1">&#39;dip&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s1">&#39;slip&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s1">&#39;rake&#39;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span>
+            <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="mf">15.</span> <span class="o">*</span> <span class="mi">10000</span><span class="o">**.</span><span class="mi">66</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">sandbox_scene</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">OkadaSource</span><span class="p">(</span><span class="o">**</span><span class="n">parameters</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">sandbox_scene</span>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

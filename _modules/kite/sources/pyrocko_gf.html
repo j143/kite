@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>kite.sources.pyrocko_gf &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../../../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../../../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../../../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for kite.sources.pyrocko_gf</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
+<span class="kn">from</span> <span class="nn">pyrocko.guts</span> <span class="k">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Int</span>
+<span class="kn">from</span> <span class="nn">pyrocko</span> <span class="k">import</span> <span class="n">gf</span>
+
+<span class="kn">from</span> <span class="nn">.base</span> <span class="k">import</span> <span class="n">SandboxSourceRectangular</span><span class="p">,</span> <span class="n">SandboxSource</span><span class="p">,</span> <span class="n">SourceProcessor</span>
+
+<span class="n">d2r</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.</span>
+<span class="n">r2d</span> <span class="o">=</span> <span class="mf">180.</span> <span class="o">/</span> <span class="n">num</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">km</span> <span class="o">=</span> <span class="mf">1e3</span>
+
+
+<div class="viewcode-block" id="PyrockoSource"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PyrockoSource">[docs]</a><span class="k">class</span> <span class="nc">PyrockoSource</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">parametersUpdated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">updatePyrockoSource</span><span class="p">()</span>
+        <span class="n">SandboxSource</span><span class="o">.</span><span class="n">parametersUpdated</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">updatePyrockoSource</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_src_args</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PyrockoRectangularSource"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PyrockoRectangularSource">[docs]</a><span class="k">class</span> <span class="nc">PyrockoRectangularSource</span><span class="p">(</span><span class="n">SandboxSourceRectangular</span><span class="p">,</span> <span class="n">PyrockoSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;pyrocko&#39;</span>
+
+    <span class="n">decimation_factor</span> <span class="o">=</span> <span class="n">Int</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Sub-source decimation factor.&#39;</span><span class="p">)</span>
+    <span class="n">store_dir</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pyrocko GF Store path&#39;</span><span class="p">)</span>
+
+    <span class="n">parametersUpdated</span> <span class="o">=</span> <span class="n">PyrockoSource</span><span class="o">.</span><span class="n">parametersUpdated</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">SandboxSourceRectangular</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">RectangularSource</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_src_args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_src_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;north_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;east_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span>
+            <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+            <span class="s1">&#39;strike&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span>
+            <span class="s1">&#39;dip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dip</span><span class="p">,</span>
+            <span class="s1">&#39;rake&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rake</span><span class="p">,</span>
+            <span class="s1">&#39;slip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">slip</span><span class="p">,</span>
+            <span class="s1">&#39;decimation_factor&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">decimation_factor</span><span class="p">,</span>
+            <span class="s1">&#39;anchor&#39;</span><span class="p">:</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span></div>
+        <span class="p">}</span>
+
+
+<div class="viewcode-block" id="PyrockoMomentTensor"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PyrockoMomentTensor">[docs]</a><span class="k">class</span> <span class="nc">PyrockoMomentTensor</span><span class="p">(</span><span class="n">SandboxSource</span><span class="p">,</span> <span class="n">PyrockoSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;pyrocko&#39;</span>
+
+    <span class="n">store_dir</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pyrocko GF Store path&#39;</span><span class="p">)</span>
+    <span class="n">mnn</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;north-north component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+    <span class="n">mee</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;east-east component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+    <span class="n">mdd</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;down-down component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+    <span class="n">mne</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;north-east component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+    <span class="n">mnd</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;north-down component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+    <span class="n">med</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;east-down component of moment tensor in [Nm]&#39;</span><span class="p">)</span>
+
+    <span class="n">parametersUpdated</span> <span class="o">=</span> <span class="n">PyrockoSource</span><span class="o">.</span><span class="n">parametersUpdated</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">SandboxSource</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">MTSource</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_src_args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_src_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;north_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;east_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;mnn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnn</span><span class="p">,</span>
+            <span class="s1">&#39;mee&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mee</span><span class="p">,</span>
+            <span class="s1">&#39;mdd&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mdd</span><span class="p">,</span>
+            <span class="s1">&#39;mne&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mne</span><span class="p">,</span>
+            <span class="s1">&#39;mnd&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">mnd</span><span class="p">,</span>
+            <span class="s1">&#39;med&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">med</span><span class="p">,</span></div>
+        <span class="p">}</span>
+
+
+<div class="viewcode-block" id="PyrockoDoubleCouple"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PyrockoDoubleCouple">[docs]</a><span class="k">class</span> <span class="nc">PyrockoDoubleCouple</span><span class="p">(</span><span class="n">SandboxSource</span><span class="p">,</span> <span class="n">PyrockoSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;pyrocko&#39;</span>
+
+    <span class="n">strike</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;strike direction in [deg], measured clockwise from north&#39;</span><span class="p">)</span>
+    <span class="n">magnitude</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;moment magnitude Mw as in [Hanks and Kanamori, 1979]&#39;</span><span class="p">)</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;dip angle in [deg], measured downward from horizontal&#39;</span><span class="p">)</span>
+    <span class="n">rake</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;rake angle in [deg], &#39;</span>
+             <span class="s1">&#39;measured counter-clockwise from right-horizontal &#39;</span>
+             <span class="s1">&#39;in on-plane view&#39;</span><span class="p">)</span>
+    <span class="n">store_dir</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pyrocko GF Store path&#39;</span><span class="p">)</span>
+
+    <span class="n">parametersUpdated</span> <span class="o">=</span> <span class="n">PyrockoSource</span><span class="o">.</span><span class="n">parametersUpdated</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">SandboxSource</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">DCSource</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_src_args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span><span class="o">.</span><span class="n">moment</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_src_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;north_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;east_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;magnitude&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnitude</span><span class="p">,</span>
+            <span class="s1">&#39;strike&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span>
+            <span class="s1">&#39;dip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dip</span><span class="p">,</span>
+            <span class="s1">&#39;rake&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rake</span></div>
+        <span class="p">}</span>
+
+
+<div class="viewcode-block" id="PyrockoRingfaultSource"><a class="viewcode-back" href="../../../reference/kite.sources.html#kite.sources.PyrockoRingfaultSource">[docs]</a><span class="k">class</span> <span class="nc">PyrockoRingfaultSource</span><span class="p">(</span><span class="n">SandboxSource</span><span class="p">,</span> <span class="n">PyrockoSource</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;pyrocko&#39;</span>
+
+    <span class="n">store_dir</span> <span class="o">=</span> <span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Pyrocko GF Store path&#39;</span><span class="p">)</span>
+    <span class="n">diameter</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;diameter of the ring in [m]&#39;</span><span class="p">)</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;inside of the ring moves up (+1) or down (-1)&#39;</span><span class="p">)</span>
+    <span class="n">strike</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;strike direction of the ring plane, clockwise from north,&#39;</span>
+             <span class="s1">&#39; in [deg]&#39;</span><span class="p">)</span>
+    <span class="n">dip</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;dip angle of the ring plane from horizontal in [deg]&#39;</span><span class="p">)</span>
+    <span class="n">npointsources</span> <span class="o">=</span> <span class="n">Int</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;number of point sources to use&#39;</span><span class="p">)</span>
+    <span class="n">magnitude</span> <span class="o">=</span> <span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;moment magnitude Mw as in [Hanks and Kanamori, 1979]&#39;</span><span class="p">)</span>
+
+    <span class="n">parametersUpdated</span> <span class="o">=</span> <span class="n">PyrockoSource</span><span class="o">.</span><span class="n">parametersUpdated</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">SandboxSource</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">PyrockoSource</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pyrocko_source</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">RingfaultSource</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_src_args</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_src_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>
+            <span class="s1">&#39;north_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">northing</span><span class="p">,</span>
+            <span class="s1">&#39;east_shift&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">easting</span><span class="p">,</span>
+            <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+            <span class="s1">&#39;diameter&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diameter</span><span class="p">,</span>
+            <span class="s1">&#39;strike&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">strike</span><span class="p">,</span>
+            <span class="s1">&#39;dip&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dip</span><span class="p">,</span>
+            <span class="s1">&#39;magnitude&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnitude</span><span class="p">,</span>
+            <span class="s1">&#39;npointsources&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">npointsources</span><span class="p">,</span></div>
+        <span class="p">}</span>
+
+
+<span class="k">class</span> <span class="nc">PyrockoProcessor</span><span class="p">(</span><span class="n">SourceProcessor</span><span class="p">):</span>
+
+    <span class="n">__implements__</span> <span class="o">=</span> <span class="s1">&#39;pyrocko&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">SourceProcessor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">LocalEngine</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">nthreads</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;processor_profile&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(),</span>
+            <span class="s1">&#39;displacement.n&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="s1">&#39;displacement.e&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span>
+            <span class="s1">&#39;displacement.d&#39;</span><span class="p">:</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="p">}</span>
+
+        <span class="n">target</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">StaticTarget</span><span class="p">(</span>
+            <span class="n">east_shifts</span><span class="o">=</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">north_shifts</span><span class="o">=</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest_neighbor&#39;</span><span class="p">)</span>
+
+        <span class="n">store_dirs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">src</span><span class="o">.</span><span class="n">store_dir</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">store_dir</span> <span class="ow">in</span> <span class="n">store_dirs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">store_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">store_dir</span><span class="p">]</span>
+
+            <span class="n">talpa_sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">src</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span>
+                             <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">store_dir</span> <span class="o">==</span> <span class="n">store_dir</span>
+                             <span class="ow">and</span> <span class="n">src</span><span class="o">.</span><span class="n">_cached_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+
+            <span class="n">pyr_sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">src</span><span class="o">.</span><span class="n">pyrocko_source</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">talpa_sources</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">pyr_sources</span><span class="p">:</span>
+                <span class="n">src</span><span class="o">.</span><span class="n">regularize</span><span class="p">()</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+                    <span class="n">pyr_sources</span><span class="p">,</span> <span class="p">[</span><span class="n">target</span><span class="p">],</span>
+                    <span class="n">nthreads</span><span class="o">=</span><span class="n">nthreads</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;Could not execute pyrocko.gf.LocalEngine.process! </span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="s1">&#39;LocalEngine Exception: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">for</span> <span class="n">ires</span><span class="p">,</span> <span class="n">static_res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">static_results</span><span class="p">()):</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">static_res</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">static_res</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span>
+                <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">static_res</span><span class="o">.</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span>
+
+                <span class="n">talpa_sources</span><span class="p">[</span><span class="n">ires</span><span class="p">]</span><span class="o">.</span><span class="n">_cached_result</span> <span class="o">=</span> <span class="n">static_res</span><span class="o">.</span><span class="n">result</span>
+
+        <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">_cached_result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Using cached displacement for </span><span class="si">%s</span><span class="s1">&#39;</span>
+                            <span class="o">%</span> <span class="n">src</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">src</span><span class="o">.</span><span class="n">_cached_result</span><span class="p">[</span><span class="s1">&#39;displacement.n&#39;</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">src</span><span class="o">.</span><span class="n">_cached_result</span><span class="p">[</span><span class="s1">&#39;displacement.e&#39;</span><span class="p">]</span>
+            <span class="n">result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">src</span><span class="o">.</span><span class="n">_cached_result</span><span class="p">[</span><span class="s1">&#39;displacement.d&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

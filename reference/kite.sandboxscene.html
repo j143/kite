@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The SandboxScene Module &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="The Sources Module" href="kite.sources.html" />
+    <link rel="prev" title="The Spool Module" href="kite.spool.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="index.html" accesskey="U">Module Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-sandboxscene-module">
+<h1>The SandboxScene Module<a class="headerlink" href="#the-sandboxscene-module" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="kite.sandbox_scene.SandboxSceneConfig">
+<em class="property">class </em><code class="descclassname">kite.sandbox_scene.</code><code class="descname">SandboxSceneConfig</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxSceneConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sandbox_scene.SandboxSceneConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="SandboxSceneConfig.frame">
+<em class="property">♦ </em><code class="descname">frame</code><a class="headerlink" href="#SandboxSceneConfig.frame" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="kite.scene.html#kite.scene.FrameConfig" title="kite.scene.FrameConfig"><code class="xref py py-class docutils literal"><span class="pre">kite.scene.FrameConfig</span></code></a>, <em>default:</em> <code class="docutils literal"><span class="pre">&lt;kite.scene.FrameConfig</span> <span class="pre">object</span> <span class="pre">at</span> <span class="pre">0x7f079503d890&gt;</span></code></p>
+<p>Frame/reference configuration</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSceneConfig.extent_north">
+<em class="property">♦ </em><code class="descname">extent_north</code><a class="headerlink" href="#SandboxSceneConfig.extent_north" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">int</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">800</span></code></p>
+<p>Model size towards north in [px]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSceneConfig.extent_east">
+<em class="property">♦ </em><code class="descname">extent_east</code><a class="headerlink" href="#SandboxSceneConfig.extent_east" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">int</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">800</span></code></p>
+<p>Model size towards east in [px]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSceneConfig.sources">
+<em class="property">♦ </em><code class="descname">sources</code><a class="headerlink" href="#SandboxSceneConfig.sources" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal"><span class="pre">pyrocko.guts.Any</span></code> objects, <em>default:</em> <code class="docutils literal"><span class="pre">[]</span></code></p>
+<p>List of sources</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSceneConfig.reference_scene">
+<em class="property">♦ </em><code class="descname">reference_scene</code><a class="headerlink" href="#SandboxSceneConfig.reference_scene" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code>, <em>optional</em></p>
+<p>Reference kite.Scene container</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.SandboxScene">
+<em class="property">class </em><code class="descclassname">kite.</code><code class="descname">SandboxScene</code><span class="sig-paren">(</span><em>config=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="kite.scene.html#kite.scene.BaseScene" title="kite.scene.BaseScene"><code class="xref py py-class docutils literal"><span class="pre">kite.scene.BaseScene</span></code></a></p>
+<dl class="method">
+<dt id="kite.SandboxScene.addSource">
+<code class="descname">addSource</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.addSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.addSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add displacement source to sandbox</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<code class="xref py py-class docutils literal"><span class="pre">kite.sources.meta.SandboxSource</span></code>) – Displacment Source</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.SandboxScene.displacement">
+<code class="descname">displacement</code><a class="headerlink" href="#kite.SandboxScene.displacement" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Displacement in LOS</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.getKiteScene">
+<code class="descname">getKiteScene</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.getKiteScene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.getKiteScene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene</span></code></a> from current model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Scene</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal"><span class="pre">Scene</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="kite.SandboxScene.load">
+<em class="property">classmethod </em><code class="descname">load</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a <a class="reference internal" href="#kite.SandboxScene" title="kite.SandboxScene"><code class="xref py py-class docutils literal"><span class="pre">kite.SandboxScene</span></code></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – Config file to load [.yml]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A sandbox from config file</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#kite.SandboxScene" title="kite.SandboxScene"><code class="xref py py-class docutils literal"><span class="pre">kite.SandboxScene</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.loadReferenceScene">
+<code class="descname">loadReferenceScene</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.loadReferenceScene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.loadReferenceScene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a reference kite scene container into the sandbox</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – filename of the scene container to load [.npy, .yml]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.SandboxScene.max_horizontal_displacement">
+<code class="descname">max_horizontal_displacement</code><a class="headerlink" href="#kite.SandboxScene.max_horizontal_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Getter:</th><td class="field-body"><em>(Cached)</em> Maximum horizontal displacement</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.processSources">
+<code class="descname">processSources</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.processSources"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.processSources" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process displacement sources and update displacements</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.removeSource">
+<code class="descname">removeSource</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.removeSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.removeSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove displacement source to sandbox</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>source</strong> (<code class="xref py py-class docutils literal"><span class="pre">kite.sources.meta.SandboxSource</span></code>) – Displacment Source</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the sandbox as kite scene container</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<em>str</em>) – filename to save under</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.setExtent">
+<code class="descname">setExtent</code><span class="sig-paren">(</span><em>east</em>, <em>north</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.setExtent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.setExtent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the sandbox’s extend in pixels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>east</strong> (<em>int</em>) – Pixels in East</li>
+<li><strong>north</strong> (<em>int</em>) – Pixels in North</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="kite.SandboxScene.setReferenceScene">
+<code class="descname">setReferenceScene</code><span class="sig-paren">(</span><em>scene</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sandbox_scene.html#SandboxScene.setReferenceScene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.SandboxScene.setReferenceScene" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a reference scene</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scene</strong> (<a class="reference internal" href="kite.scene.html#kite.Scene" title="kite.Scene"><code class="xref py py-class docutils literal"><span class="pre">kite.Scene</span></code></a>) – Kite scene</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.SandboxScene.sources">
+<code class="descname">sources</code><a class="headerlink" href="#kite.SandboxScene.sources" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List of sources attached sandbox</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="kite.sources.html" title="The Sources Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kite.spool.html" title="The Spool Module"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Talpa Static Displacement Modelling (GUI) &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Module Reference" href="reference/index.html" />
+    <link rel="prev" title="Spool (GUI)" href="spool.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">Kite  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="talpa-static-displacement-modelling-gui">
+<h1><code class="docutils literal"><span class="pre">Talpa</span></code> Static Displacement Modelling (GUI)<a class="headerlink" href="#talpa-static-displacement-modelling-gui" title="Permalink to this headline">¶</a></h1>
+<p>The tool <code class="docutils literal"><span class="pre">talpa</span></code> (<cite>Talpidae; the mole</cite>) enables interactive modelling of static displacement sources.</p>
+<p>It acts as a frontend for <a class="reference internal" href="reference/kite.sandboxscene.html#kite.SandboxScene" title="kite.SandboxScene"><code class="xref py py-mod docutils literal"><span class="pre">kite.SandboxScene</span></code></a>, a modelling sandbox for InSAR scenes.</p>
+<div class="section" id="available-static-displacement-sources">
+<h2>Available Static Displacement Sources<a class="headerlink" href="#available-static-displacement-sources" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="reference/kite.sandboxscene.html#kite.SandboxScene" title="kite.SandboxScene"><code class="xref py py-mod docutils literal"><span class="pre">SandboxScene</span></code></a> can hosts different types of displacement source by levering different processing engines, analytical and numerical. The different types of dispalcement source can be mixed within a single sandbox</p>
+<div class="section" id="okada-source">
+<h3>1. Okada Source<a class="headerlink" href="#okada-source" title="Permalink to this headline">¶</a></h3>
+<p>A basic analytical displacement source is <a class="reference internal" href="reference/kite.sources.html#kite.sources.OkadaSource" title="kite.sources.OkadaSource"><code class="xref py py-class docutils literal"><span class="pre">OkadaSource</span></code></a>. We will use an Okada source in examples below, however the other’s sources handling is similar.</p>
+</div>
+<div class="section" id="pyrocko-sources">
+<h3>2. Pyrocko Sources<a class="headerlink" href="#pyrocko-sources" title="Permalink to this headline">¶</a></h3>
+<p>We leverage different sources from Pyrocko. These sources need a pre-build Green’s function store, which enable layered half-space models. (see <code class="xref py py-mod docutils literal"><span class="pre">pyrocko.apps.fomosto</span></code>)</p>
+<p>Implemented source types - Point sources and extended.</p>
+<ul class="simple">
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.PyrockoRectangularSource" title="kite.sources.PyrockoRectangularSource"><code class="xref py py-class docutils literal"><span class="pre">PyrockoRectangularSource</span></code></a></li>
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.PyrockoMomentTensor" title="kite.sources.PyrockoMomentTensor"><code class="xref py py-class docutils literal"><span class="pre">PyrockoMomentTensor</span></code></a></li>
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.PyrockoDoubleCouple" title="kite.sources.PyrockoDoubleCouple"><code class="xref py py-class docutils literal"><span class="pre">PyrockoDoubleCouple</span></code></a></li>
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.PyrockoRingfaultSource" title="kite.sources.PyrockoRingfaultSource"><code class="xref py py-class docutils literal"><span class="pre">PyrockoRingfaultSource</span></code></a></li>
+</ul>
+</div>
+<div class="section" id="compound-dislocation-sources">
+<h3>3. Compound Dislocation Sources<a class="headerlink" href="#compound-dislocation-sources" title="Permalink to this headline">¶</a></h3>
+<p>Analytical dilatation point sources extending Mogi sources are implemented in <code class="docutils literal"><span class="pre">kite</span></code>:</p>
+<ul class="simple">
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.EllipsoidSource" title="kite.sources.EllipsoidSource"><code class="xref py py-class docutils literal"><span class="pre">EllipsoidSource</span></code></a></li>
+<li><a class="reference internal" href="reference/kite.sources.html#kite.sources.PointCompoundSource" title="kite.sources.PointCompoundSource"><code class="xref py py-class docutils literal"><span class="pre">PointCompoundSource</span></code></a></li>
+</ul>
+<p>for more information see <a class="reference external" href="http://www.volcanodeformation.com">http://www.volcanodeformation.com</a> and <a class="footnote-reference" href="#f1" id="id1">[1]</a>.</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Nikkhoo, M., Walter, T. R., Lundgren, P. R., Prats-Iraola, P. (2017): Compound dislocation models (CDMs) for volcano deformation analyses. - Geophysical Journal International, 208, 2, p. 877-894.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="adding-sources">
+<h2>Adding Sources<a class="headerlink" href="#adding-sources" title="Permalink to this headline">¶</a></h2>
+<p>A selection of different displacement sources can be added to the modelling sandbox by right clicking on the source list.</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/talpa-src_add.gif"><img alt="_images/talpa-src_add.gif" src="_images/talpa-src_add.gif" style="width: 80%;" /></a>
+<p class="caption"><span class="caption-text">Adding a source to the <a class="reference internal" href="reference/kite.sandboxscene.html#kite.SandboxScene" title="kite.SandboxScene"><code class="xref py py-class docutils literal"><span class="pre">kite.SandboxScene</span></code></a> using the GUI.</span></p>
+</div>
+</div>
+<div class="section" id="manipulating-sources">
+<h2>Manipulating Sources<a class="headerlink" href="#manipulating-sources" title="Permalink to this headline">¶</a></h2>
+<p>The spatial parameters of the the sandbox’s source can be interacted with by click-and-drag. Advanced parameters, in this case dip, rake and slip are accesses through the editing dialog.</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="_images/talpa-src_mod.gif"><img alt="_images/talpa-src_mod.gif" src="_images/talpa-src_mod.gif" style="width: 80%;" /></a>
+<p class="caption"><span class="caption-text">Interactive manipulation of a <a class="reference internal" href="reference/kite.sources.html#kite.sources.OkadaSource" title="kite.sources.OkadaSource"><code class="xref py py-class docutils literal"><span class="pre">OkadaSource</span></code></a> within the sandbox.</span></p>
+</div>
+<p>Parametrisation through the source’s editing dialog (<span class="menuselection">&lt;right-click&gt; ‣ Edit</span>).</p>
+<div class="figure align-center" id="id4">
+<img alt="_images/talpa-src_dialog.png" src="_images/talpa-src_dialog.png" />
+<p class="caption"><span class="caption-text">Source parameter dialog for an <a class="reference internal" href="reference/kite.sources.html#kite.sources.OkadaSource" title="kite.sources.OkadaSource"><code class="xref py py-class docutils literal"><span class="pre">OkadaSource</span></code></a>.</span></p>
+</div>
+</div>
+<div class="section" id="saving-and-saving-a-sandbox">
+<h2>Saving and Saving a Sandbox<a class="headerlink" href="#saving-and-saving-a-sandbox" title="Permalink to this headline">¶</a></h2>
+<p>The scene can be saved and loaded through the <span class="menuselection">File</span> menu.</p>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="reference/index.html" title="Module Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="spool.html" title="Spool (GUI)"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

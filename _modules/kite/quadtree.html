@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>kite.quadtree &#8212; Kite  documentation</title>
-    
     <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -37,7 +33,7 @@
     
 
   </head>
-  <body role="document">
+  <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -58,10 +54,10 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">pyrocko</span> <span class="k">import</span> <span class="n">guts</span>
 
-<span class="kn">from</span> <span class="nn">.meta</span> <span class="k">import</span> <span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span><span class="p">,</span> <span class="n">derampMatrix</span>
+<span class="kn">from</span> <span class="nn">.util</span> <span class="k">import</span> <span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span><span class="p">,</span> <span class="n">derampMatrix</span>
 
 
-<div class="viewcode-block" id="QuadNode"><a class="viewcode-back" href="../../kite.quadtree.html#kite.QuadNode">[docs]</a><span class="k">class</span> <span class="nc">QuadNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="QuadNode"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.QuadNode">[docs]</a><span class="k">class</span> <span class="nc">QuadNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; A node (or *tile*) in held by :class:`~kite.Quadtree`. Each node in the</span>
 <span class="sd">    tree hold a back reference to the quadtree and scene to access</span>
 
@@ -153,7 +149,7 @@
     <span class="k">def</span> <span class="nf">weight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Absolute weight derived from :class:`kite.Covariance`</span>
-<span class="sd">         - works on tree leafs only.</span>
+<span class="sd">         - works on tree leaves only.</span>
 <span class="sd">        :type: float</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">quadtree</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">covariance</span><span class="o">.</span><span class="n">getLeafWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -266,7 +262,7 @@
             <span class="n">sizeN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">N</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">llN</span>
         <span class="k">return</span> <span class="n">sizeN</span>
 
-<div class="viewcode-block" id="QuadNode.iterChildren"><a class="viewcode-back" href="../../kite.quadtree.html#kite.QuadNode.iterChildren">[docs]</a>    <span class="k">def</span> <span class="nf">iterChildren</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="QuadNode.iterChildren"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.QuadNode.iterChildren">[docs]</a>    <span class="k">def</span> <span class="nf">iterChildren</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Iterator over the all children.</span>
 
 <span class="sd">        :yields: Children of it&#39;s own.</span>
@@ -275,11 +271,11 @@
         <span class="k">yield</span> <span class="bp">self</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">rc</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">iterChildren</span><span class="p">():</span>
-                    <span class="k">yield</span> <span class="n">rc</span></div>
+                <span class="k">for</span> <span class="n">rc</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">iterChildren</span><span class="p">():</span></div>
+                    <span class="k">yield</span> <span class="n">rc</span>
 
-<div class="viewcode-block" id="QuadNode.iterLeafs"><a class="viewcode-back" href="../../kite.quadtree.html#kite.QuadNode.iterLeafs">[docs]</a>    <span class="k">def</span> <span class="nf">iterLeafs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39; Iterator over the leafs, evaluating parameters from</span>
+<div class="viewcode-block" id="QuadNode.iterLeafs"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.QuadNode.iterLeafs">[docs]</a>    <span class="k">def</span> <span class="nf">iterLeafs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Iterator over the leaves, evaluating parameters from</span>
 <span class="sd">        :class:`~kite.Quadtree` instance.</span>
 
 <span class="sd">        :yields: Leafs fullfilling the tree&#39;s parameters.</span>
@@ -293,8 +289,8 @@
             <span class="k">yield</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">iterLeafs</span><span class="p">():</span>
-                    <span class="k">yield</span> <span class="n">q</span></div>
+                <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">iterLeafs</span><span class="p">():</span></div>
+                    <span class="k">yield</span> <span class="n">q</span>
 
     <span class="k">def</span> <span class="nf">_iterSplitNode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -309,7 +305,7 @@
                 <span class="k">continue</span>
             <span class="k">yield</span> <span class="n">n</span>
 
-<div class="viewcode-block" id="QuadNode.createTree"><a class="viewcode-back" href="../../kite.quadtree.html#kite.QuadNode.createTree">[docs]</a>    <span class="k">def</span> <span class="nf">createTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="QuadNode.createTree"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.QuadNode.createTree">[docs]</a>    <span class="k">def</span> <span class="nf">createTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39; Create the tree from a set of basenodes, ignited by</span>
 <span class="sd">        :class:`~kite.Quadtree` instance. Evaluates :class:`~kite.Quadtree`</span>
 <span class="sd">        correction method and :attr:`~kite.Quadtree.epsilon_min`.</span>
@@ -323,11 +319,11 @@
                 <span class="n">c</span><span class="o">.</span><span class="n">createTree</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="kc">None</span></div></div>
+        <span class="k">else</span><span class="p">:</span></div></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="kc">None</span>
 
 
-<div class="viewcode-block" id="QuadtreeConfig"><a class="viewcode-back" href="../../kite.quadtree.html#kite.QuadtreeConfig">[docs]</a><span class="k">class</span> <span class="nc">QuadtreeConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
+<div class="viewcode-block" id="QuadtreeConfig"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.QuadtreeConfig">[docs]</a><span class="k">class</span> <span class="nc">QuadtreeConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Quadtree configuration object holding essential parameters used to</span>
 <span class="sd">    reconstruct a particular tree</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -351,19 +347,23 @@
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum allowed tile size in *meter*&#39;</span><span class="p">)</span>
     <span class="n">leaf_blacklist</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Blacklist of excluded leafs&#39;</span><span class="p">)</span></div>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span></div>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Blacklist of excluded leaves&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Quadtree"><a class="viewcode-back" href="../../kite.quadtree.html#kite.Quadtree">[docs]</a><span class="k">class</span> <span class="nc">Quadtree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Quadtree for simplifying InSAR displacement data held in</span>
-<span class="sd">    :class:`kite.scene.Scene`</span>
+<div class="viewcode-block" id="Quadtree"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree">[docs]</a><span class="k">class</span> <span class="nc">Quadtree</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Quadtree for irregular subsampling InSAR displacement data held in</span>
+<span class="sd">    :py:class:`kite.scene.Scene`</span>
 
-<span class="sd">    Post-earthquake InSAR displacement scenes can hold a vast amount of data,</span>
-<span class="sd">    which is unsuiteable for use with modelling code. By simplifying the data</span>
-<span class="sd">    systematicallc through a parametrized quadtree we can reduce the dataset to</span>
-<span class="sd">    significant displacements and have high-resolution where it matters and</span>
-<span class="sd">    lower resolution at regions with less or constant deformation.</span>
+<span class="sd">    InSAR displacement scenes can hold a vast amount of data points,</span>
+<span class="sd">    which is often highly redundant and unsuitably large for the use in</span>
+<span class="sd">    inverse modeling. By subsampling and therefore decimating the data points</span>
+<span class="sd">    systematically through a parametrized quadtree we can reduce the dataset</span>
+<span class="sd">    without significant loss of displacement information. Quadtree subsampling</span>
+<span class="sd">    keeps a high spatial resolution where displacement gradients are high and</span>
+<span class="sd">    efficiently reduces data point density in regions with small displacement</span>
+<span class="sd">    variations. The product is a managable dataset size with good</span>
+<span class="sd">    representation of the original data.</span>
 
 <span class="sd">    The standard deviation from :attr:`kite.quadtree.QuadNode.displacement`</span>
 <span class="sd">    is evaluated against different corrections:</span>
@@ -384,10 +384,10 @@
 <span class="sd">        * :attr:`~kite.Quadtree.tile_size_max`, maximum node size in *meter*</span>
 <span class="sd">        * :attr:`~kite.Quadtree.tile_size_min`, minimum node size in *meter*</span>
 
-<span class="sd">    :attr:`~kite.Quadtree.leafs` hold the current tree&#39;s</span>
-<span class="sd">    :class:`~kite.quadtree.QuadNode` &#39;s. The leafs can also be exported in a</span>
+<span class="sd">    :attr:`~kite.Quadtree.leaves` hold the current tree&#39;s</span>
+<span class="sd">    :class:`~kite.quadtree.QuadNode` &#39;s. The leaves can also be exported in a</span>
 <span class="sd">    *CSV* format through :func:`~kite.Quadtree.export`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
     <span class="n">evConfigChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
 
@@ -409,12 +409,12 @@
     <span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">QuadtreeConfig</span><span class="p">()):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_leafs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_leaves</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">scene</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">displacement</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">displacement</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">frame</span>
 
-        <span class="c1"># Cached matrizes</span>
+        <span class="c1"># Cached matrices</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_means</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_medians</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_weights</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
@@ -424,22 +424,22 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">evConfigChanged</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setConfig</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Quadtree.setConfig"><a class="viewcode-back" href="../../kite.quadtree.html#kite.Quadtree.setConfig">[docs]</a>    <span class="k">def</span> <span class="nf">setConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Sets and updated the config of the instance</span>
+<div class="viewcode-block" id="Quadtree.setConfig"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.setConfig">[docs]</a>    <span class="k">def</span> <span class="nf">setConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Sets and updated the config of the instance</span>
 
 <span class="sd">        :param config: New config instance, defaults to configuration provided</span>
 <span class="sd">                       by parent :class:`~kite.Scene`</span>
 <span class="sd">        :type config: :class:`~kite.covariance.QuadtreeConfig`, optional</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">quadtree</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setCorrection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">correction</span><span class="p">)</span>
+</div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evConfigChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">evConfigChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="Quadtree.setCorrection"><a class="viewcode-back" href="../../kite.quadtree.html#kite.Quadtree.setCorrection">[docs]</a>    <span class="k">def</span> <span class="nf">setCorrection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Set correction method calculating the standard deviation of</span>
+<div class="viewcode-block" id="Quadtree.setCorrection"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.setCorrection">[docs]</a>    <span class="k">def</span> <span class="nf">setCorrection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Set correction method calculating the standard deviation of</span>
 <span class="sd">        instances :class:`~kite.quadtree.QuadNode` s</span>
 
 <span class="sd">        The standard deviation from :attr:`kite.quadtree.QuadNode.displacement`</span>
@@ -454,7 +454,7 @@
 <span class="sd">            ``mean_std, median_std, bilinear_std, std``</span>
 <span class="sd">        :type correction: str</span>
 <span class="sd">        :raises: AttributeError</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="n">correction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corrections</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Method </span><span class="si">%s</span><span class="s1"> not in </span><span class="si">%s</span><span class="s1">&#39;</span>
                                  <span class="o">%</span> <span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corrections</span><span class="p">))</span>
@@ -465,14 +465,20 @@
 
         <span class="c1"># Clearing cached properties through None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leaf_center_distance</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon_init</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearLeaves</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epsilon</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon_init</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_initTree</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initTree</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Quadtree.clearLeaves"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.clearLeaves">[docs]</a>    <span class="k">def</span> <span class="nf">clearLeaves</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Clear cached leafs and properties&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_center_distance</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_los_rotation_factors</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_initTree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -480,18 +486,21 @@
             <span class="n">b</span><span class="o">.</span><span class="n">createTree</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s1">&#39;Tree created, </span><span class="si">%d</span><span class="s1"> nodes [</span><span class="si">%0.8f</span><span class="s1"> s]&#39;</span> <span class="o">%</span>
+            <span class="s1">&#39;Tree created, </span><span class="si">%d</span><span class="s1"> nodes [</span><span class="si">%0.4f</span><span class="s1"> s]&#39;</span> <span class="o">%</span>
             <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nnodes</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">epsilon</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Epsilon threshold where :class:`~kite.quadtree.QuadNode` is split.</span>
-<span class="sd">        Synonym could be ``std_max`` or ``std_split``.</span>
+        <span class="sd">&#39;&#39;&#39; Threshold for quadtree splitting its ``QuadNode``.</span>
+
+<span class="sd">        The threshold is the maximum standard deviation of leaf mean,</span>
+<span class="sd">        median or simply its values (see &#39;&#39;SetSplitMethod&#39;&#39;) allowed to</span>
+<span class="sd">        not further split a &quot;QuadNode&quot;.</span>
 
 <span class="sd">        :setter: Sets the epsilon/RMS threshold</span>
 <span class="sd">        :getter: Returns the current epsilon</span>
 <span class="sd">        :type: float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epsilon</span>
 
     <span class="nd">@epsilon</span><span class="o">.</span><span class="n">setter</span>
@@ -504,7 +513,7 @@
                 <span class="s1">&#39;Epsilon is out of bounds [</span><span class="si">%0.6f</span><span class="s1">], epsilon_min </span><span class="si">%0.6f</span><span class="s1">&#39;</span> <span class="o">%</span>
                 <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon_min</span><span class="p">))</span>
             <span class="k">return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearLeaves</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clearLeafBlacklist</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">value</span>
 
@@ -518,19 +527,19 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">epsilon_min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Lowest allowed epsilon</span>
+        <span class="sd">&#39;&#39;&#39; Lowest allowed epsilon</span>
 <span class="sd">        :type: float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_epsilon_init</span> <span class="o">*</span> <span class="o">.</span><span class="mi">2</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nan_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Fraction of allowed ``NaN`` values allwed in quadtree leafs, if</span>
-<span class="sd">        value is exceeded the leaf is kicked out.</span>
+        <span class="sd">&#39;&#39;&#39;Fraction of allowed ``NaN`` values in quadtree leaves. If</span>
+<span class="sd">        value is exceeded the leaf is kicked out entirely.</span>
 
 <span class="sd">        :setter: Fraction  ``0. &lt;= fraction &lt;= 1``.</span>
 <span class="sd">        :type: float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">nan_allowed</span>
 
     <span class="nd">@nan_allowed</span><span class="o">.</span><span class="n">setter</span>
@@ -539,20 +548,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;NaN fraction must be 0. &lt; nan_allowed &lt;= 1.&#39;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearLeaves</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clearLeafBlacklist</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">nan_allowed</span> <span class="o">=</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tile_size_min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Minimum allowed tile size in *meter*.</span>
+        <span class="sd">&#39;&#39;&#39; Minimum allowed tile size in *meter*.</span>
 <span class="sd">        Measured along long edge ``(max(dE, dN))``</span>
 
 <span class="sd">        :getter: Returns the minimum allowed tile size</span>
 <span class="sd">        :setter: Sets the minimum threshold</span>
 <span class="sd">        :type: float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">tile_size_min</span>
 
     <span class="nd">@tile_size_min</span><span class="o">.</span><span class="n">setter</span>
@@ -565,13 +574,13 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tile_size_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Maximum allowed tile size in *meter*.</span>
+        <span class="sd">&#39;&#39;&#39; Maximum allowed tile size in *meter*.</span>
 <span class="sd">        Measured along long edge ``(max(dE, dN))``</span>
 
 <span class="sd">        :getter: Returns the maximum allowed tile size</span>
 <span class="sd">        :setter: Sets the maximum threshold</span>
 <span class="sd">        :type: float</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">tile_size_max</span>
 
     <span class="nd">@tile_size_max</span><span class="o">.</span><span class="n">setter</span>
@@ -584,7 +593,7 @@
 
     <span class="k">def</span> <span class="nf">_tileSizeChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tile_size_lim_px</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearLeaves</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clearLeafBlacklist</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
@@ -598,90 +607,103 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; All nodes of the tree</span>
+        <span class="sd">&#39;&#39;&#39; All nodes of the tree</span>
 
 <span class="sd">        :getter: Get the list of nodes</span>
 <span class="sd">        :type: list</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_nodes</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">b</span><span class="o">.</span><span class="n">iterChildren</span><span class="p">()]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nnodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Number of nodes of the built tree.</span>
 <span class="sd">        :type: int</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">clearLeafBlacklist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">leaf_blacklist</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="nf">blacklistLeafs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leafs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">leaf_blacklist</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">leafs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span> <span class="o">=</span> <span class="kc">None</span>
+<div class="viewcode-block" id="Quadtree.blacklistLeaves"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.blacklistLeaves">[docs]</a>    <span class="k">def</span> <span class="nf">blacklistLeaves</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leaves</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Blacklist a leaf and exclude it from the tree</span>
+
+<span class="sd">        :param leaves: Leaf instances</span>
+<span class="sd">        :type leaves: list</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">leaf_blacklist</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">leaves</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Blacklisted leaves: </span><span class="si">%s</span><span class="s1">&#39;</span>
+                        <span class="o">%</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">leaf_blacklist</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clearLeaves</span><span class="p">()</span></div>
         <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
     <span class="nd">@property_cached</span>
-    <span class="k">def</span> <span class="nf">leafs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;:getter: List of leafs for current configuration.</span>
+    <span class="k">def</span> <span class="nf">leaves</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;:getter: List of leaves for current configuration.</span>
 <span class="sd">        :type: (list or :class:`~kite.quadtree.QuadNode` s)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">leafs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">leaves</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_nodes</span><span class="p">:</span>
-            <span class="n">leafs</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">b</span><span class="o">.</span><span class="n">iterLeafs</span><span class="p">()</span>
+            <span class="n">leaves</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">b</span><span class="o">.</span><span class="n">iterLeafs</span><span class="p">()</span>
                           <span class="k">if</span> <span class="n">l</span><span class="o">.</span><span class="n">nan_fraction</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_allowed</span> <span class="ow">and</span>
                           <span class="n">l</span><span class="o">.</span><span class="n">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">leaf_blacklist</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s1">&#39;Gathering leafs for epsilon </span><span class="si">%.4f</span><span class="s1"> (nleafs=</span><span class="si">%d</span><span class="s1">) [</span><span class="si">%0.8f</span><span class="s1"> s]&#39;</span> <span class="o">%</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">leafs</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">leafs</span>
+            <span class="s1">&#39;Gathering leaves for epsilon </span><span class="si">%.4f</span><span class="s1"> (nleaves=</span><span class="si">%d</span><span class="s1">) [</span><span class="si">%0.4f</span><span class="s1"> s]&#39;</span> <span class="o">%</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">),</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">leaves</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nleafs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :getter: Number of leafs for current parametrisation.</span>
+    <span class="k">def</span> <span class="nf">nleaves</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :getter: Number of leaves for current parametrisation.</span>
 <span class="sd">        :type: int</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf mean displacements from</span>
 <span class="sd">            :attr:`kite.quadtree.QuadNode.mean`.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``N``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">mean</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">mean</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_medians</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf median displacements from</span>
 <span class="sd">            :attr:`kite.quadtree.QuadNode.median`.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``N``.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">median</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">median</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_leaf_focal_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">_focal_point</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">_focal_point</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_focal_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf focal points in local coordinates.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N, 2)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">focal_point</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">focal_point</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">leaf_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Synonym for :func:`Quadtree.leaf_focal_points`</span>
+<span class="sd">           in easting/northing&#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_focal_points</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">leaf_center_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf distance to center point of the quadtree</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N, 3)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">distances</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nleafs</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nleaves</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
         <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">center_point</span>
         <span class="n">distances</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_focal_points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">distances</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_focal_points</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -689,47 +711,71 @@
         <span class="k">return</span> <span class="n">distances</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">leaf_eastings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_coordinates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">leaf_northings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_coordinates</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_phis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Median leaf LOS phi angle. :attr:`kite.Scene.phi`</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">phi</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_thetas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Median leaf LOS theta angle. :attr:`kite.Scene.theta`</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">theta</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">])</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">l</span><span class="o">.</span><span class="n">theta</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">])</span>
+
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">leaf_los_rotation_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :getter: Trigonometric factors for rotating displacement</span>
+<span class="sd">            matrices towards LOS.</span>
+<span class="sd">            See :attr:`kite.BaseScene.los_rotation_factors`</span>
+<span class="sd">        :type: :class:`numpy.ndarray`, Nx3</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">los_factors</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">nleaves</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">los_factors</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_thetas</span><span class="p">)</span>
+        <span class="n">los_factors</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_thetas</span><span class="p">)</span>\
+            <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_phis</span><span class="p">)</span>
+        <span class="n">los_factors</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_thetas</span><span class="p">)</span>\
+            <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_phis</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">los_factors</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_matrix_means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf mean displacements casted to</span>
 <span class="sd">            :attr:`kite.Scene.displacement`.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N, M)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLeafsNormMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_means</span><span class="p">,</span>
                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_matrix_medians</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf median displacements casted to</span>
 <span class="sd">            :attr:`kite.Scene.displacement`.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N, M)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLeafsNormMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_medians</span><span class="p">,</span>
                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;median&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">leaf_matrix_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        :getter: Leaf weights casted to :attr:`kite.Scene.displacement`.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``(N, M)``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLeafsNormMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_leaf_matrix_weights</span><span class="p">,</span>
                                         <span class="n">method</span><span class="o">=</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span>
 
@@ -740,7 +786,7 @@
                 <span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_norm_methods</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># noqa</span>
         <span class="n">array</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">:</span>
             <span class="n">array</span><span class="p">[</span><span class="n">l</span><span class="o">.</span><span class="n">_slice_rows</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">_slice_cols</span><span class="p">]</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_norm_methods</span><span class="p">[</span><span class="n">method</span><span class="p">](</span><span class="n">l</span><span class="p">)</span>
         <span class="n">array</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">displacement_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">nan</span>
@@ -756,10 +802,10 @@
         <span class="sd">&#39;&#39;&#39; This is measure for the reduction of the scene&#39;s full resolution</span>
 <span class="sd">        over the quadtree.</span>
 
-<span class="sd">        :getter: Quadtree efficiency as :math:`N_{full} / N_{leafs}`</span>
+<span class="sd">        :getter: Quadtree efficiency as :math:`N_{full} / N_{leaves}`</span>
 <span class="sd">        :type: float</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">rows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nleafs</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">rows</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nleaves</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">reduction_rms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -794,40 +840,48 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Simple `matplotlib` illustration of the quadtree</span>
+        <span class="sd">&#39;&#39;&#39; Simple `matplotlib` illustration of the quadtree</span>
 
 <span class="sd">        :type: :attr:`Quadtree.leaf_matrix_means`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="kn">from</span> <span class="nn">kite.plot2d</span> <span class="k">import</span> <span class="n">QuadtreePlot</span>
         <span class="k">return</span> <span class="n">QuadtreePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Quadtree.getStaticTarget"><a class="viewcode-back" href="../../kite.quadtree.html#kite.Quadtree.getStaticTarget">[docs]</a>    <span class="k">def</span> <span class="nf">getStaticTarget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Not Implemented</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+<div class="viewcode-block" id="Quadtree.getStaticTarget"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.getStaticTarget">[docs]</a>    <span class="k">def</span> <span class="nf">getStaticTarget</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Not Implemented</span>
+<span class="sd">        &#39;&#39;&#39;</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
-<div class="viewcode-block" id="Quadtree.export"><a class="viewcode-back" href="../../kite.quadtree.html#kite.Quadtree.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Exports the current quadtree leafs to ``filename`` in a</span>
+    <span class="k">def</span> <span class="nf">getMPLRectangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Rectangle</span>
+        <span class="n">rectangles</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">Rectangle</span><span class="p">((</span><span class="n">l</span><span class="o">.</span><span class="n">llE</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">llN</span><span class="p">),</span> <span class="n">l</span><span class="o">.</span><span class="n">sizeE</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">sizeN</span><span class="p">)</span>
+            <span class="n">rectangles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rectangles</span>
+
+<div class="viewcode-block" id="Quadtree.export"><a class="viewcode-back" href="../../reference/kite.quadtree.html#kite.Quadtree.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Exports the current quadtree leaves to ``filename`` in a</span>
 <span class="sd">        *CSV* format</span>
 
 <span class="sd">        The formatting is::</span>
 
 <span class="sd">            # node_id, focal_point_E, focal_point_N, theta, phi, \</span>
-<span class="sd">mean_displacement, median_displacement, absolute_weight</span>
+<span class="sd">            mean_displacement, median_displacement, absolute_weight</span>
 
 <span class="sd">        :param filename: export to path</span>
 <span class="sd">        :type filename: string</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Exporting Quadtree.leafs to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Exporting Quadtree.leaves to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                 <span class="s1">&#39;# node_id, focal_point_E, focal_point_N, theta, phi, &#39;</span>
                 <span class="s1">&#39;mean_displacement, median_displacement, absolute_weight</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leafs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                     <span class="s1">&#39;</span><span class="si">{l.id}</span><span class="s1">, </span><span class="si">{l.focal_point[0]}</span><span class="s1">, </span><span class="si">{l.focal_point[1]}</span><span class="s1">, &#39;</span>
-                    <span class="s1">&#39;</span><span class="si">{l.theta}</span><span class="s1">, </span><span class="si">{l.phi}</span><span class="s1">, &#39;</span>
-                    <span class="s1">&#39;</span><span class="si">{l.mean}</span><span class="s1">, </span><span class="si">{l.median}</span><span class="s1">, </span><span class="si">{l.weight}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="p">))</span></div></div>
+                    <span class="s1">&#39;</span><span class="si">{l.theta}</span><span class="s1">, </span><span class="si">{l.phi}</span><span class="s1">, &#39;</span></div></div>
+                    <span class="s1">&#39;</span><span class="si">{l.mean}</span><span class="s1">, </span><span class="si">{l.median}</span><span class="s1">, </span><span class="si">{l.weight}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">l</span><span class="o">=</span><span class="n">l</span><span class="p">))</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Quadtree&#39;</span><span class="p">,</span> <span class="s1">&#39;QuadtreeConfig&#39;</span><span class="p">]</span>

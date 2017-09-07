@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Quadtree Parametrisation &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Covariance calculation" href="04-covariance.html" />
+    <link rel="prev" title="Importing, Loading and Saving" href="01-loading_saving.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="index.html" accesskey="U">Programming Examples</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="quadtree-parametrisation">
+<h1>Quadtree Parametrisation<a class="headerlink" href="#quadtree-parametrisation" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> subsamples the InSAR displacement in order to have a reduced and thus more manageable dataset for displacement modelling. The tree consists of <a class="reference internal" href="../reference/kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> s, a state or slice of the tree is denoted as <a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree.leaves" title="kite.Quadtree.leaves"><code class="xref py py-attr docutils literal"><span class="pre">leaves</span></code></a>.</p>
+<p>Four parameters characterize the quadtree and when a <a class="reference internal" href="../reference/kite.quadtree.html#kite.quadtree.QuadNode" title="kite.quadtree.QuadNode"><code class="xref py py-class docutils literal"><span class="pre">QuadNode</span></code></a> is split:</p>
+<ul class="simple">
+<li>epsilon/variance threshold of the leaf/tile(<a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree.epsilon" title="kite.Quadtree.epsilon"><code class="xref py py-attr docutils literal"><span class="pre">epsilon</span></code></a>)</li>
+<li>Fraction of NaN values within (<a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree.nan_allowed" title="kite.Quadtree.nan_allowed"><code class="xref py py-attr docutils literal"><span class="pre">nan_allowed</span></code></a>)</li>
+<li>Maximum and minium dimension of the tile
+(<a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree.tile_size_max" title="kite.Quadtree.tile_size_max"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_max</span></code></a> and <a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree.tile_size_min" title="kite.Quadtree.tile_size_min"><code class="xref py py-attr docutils literal"><span class="pre">tile_size_min</span></code></a>)</li>
+</ul>
+<p>Basically the quadtree implements ideas from <a class="footnote-reference" href="#f1" id="id1">[1]</a>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">All nodes of the <a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a> are built upon initialisation an instance.</p>
+</div>
+<div class="section" id="graphical-quadtree-parametrisation">
+<h2>Graphical quadtree parametrisation<a class="headerlink" href="#graphical-quadtree-parametrisation" title="Permalink to this headline">¶</a></h2>
+<p>The GUI <code class="docutils literal"><span class="pre">spool</span></code> offers an interactive parametrisation of the quadtree. Start the programm and play around on tab <span class="guilabel"><span class="accelerator">Q</span>uadtree</span>.</p>
+</div>
+<div class="section" id="scripted-quadtree-parametrisation">
+<h2>Scripted quadtree parametrisation<a class="headerlink" href="#scripted-quadtree-parametrisation" title="Permalink to this headline">¶</a></h2>
+<p>The parametrization of the tree can be done through the <a class="reference internal" href="../spool.html"><span class="doc">Spool (GUI)</span></a> or the python interface of <a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sc</span> <span class="k">import</span> <span class="n">Scene</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">import_data</span><span class="p">(</span><span class="s1">&#39;test/data/20110214_20110401_ml4_sm.unw.geo_ig_dsc_ionnocorr.mat&#39;</span><span class="p">)</span>
+
+<span class="n">qt</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">quadtree</span>  <span class="c1"># For convenience we set an abbreviation to the quadtree</span>
+
+<span class="c1"># Parametrisation of the quadtree</span>
+<span class="n">qt</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.024</span>  <span class="c1"># Variance threshold</span>
+<span class="n">qt</span><span class="o">.</span><span class="n">nan_allowed</span> <span class="o">=</span> <span class="mf">0.9</span>  <span class="c1"># Percentage of NaN values allowed per tile/leaf</span>
+<span class="n">qt</span><span class="o">.</span><span class="n">tile_size_max</span> <span class="o">=</span> <span class="mi">12000</span>  <span class="c1"># Maximum leaf size in [m]</span>
+<span class="n">qt</span><span class="o">.</span><span class="n">tile_size_min</span> <span class="o">=</span> <span class="mi">250</span>  <span class="c1"># Minimum leaf size in [m]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">qt</span><span class="o">.</span><span class="n">reduction_rms</span><span class="p">)</span>  <span class="c1"># In units of [m]</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="mf">0.234123152</span>
+
+<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">qt</span><span class="o">.</span><span class="n">leafs</span><span class="p">:</span>
+    <span class="nb">print</span> <span class="n">l</span>
+
+<span class="c1"># We save the quadtree configuration together w the scene</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;kite_scene&#39;</span><span class="p">)</span>
+
+<span class="c1"># Or one may export the tree in a CSV format</span>
+<span class="n">qt</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s1">&#39;/tmp/tree.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Jónsson, Sigurjón, Howard Zebker, Paul Segall, and Falk Amelung. 2002. “Fault Slip Distribution of the 1999 Mw 7.1 Hector Mine, California, Earthquake, Estimated from Satellite Radar and GPS Measurements.” Bulletin of the Seismological Society of America 92 (4): 1377–89. doi:10.1785/0120000922.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="04-covariance.html" title="Covariance calculation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="01-loading_saving.html" title="Importing, Loading and Saving"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>Kite Manual &#8212; Kite  documentation</title>
-    
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
@@ -38,7 +34,7 @@
     
 
   </head>
-  <body role="document">
+  <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -75,41 +71,35 @@
 <li class="toctree-l2"><a class="reference internal" href="installation.html#macos-sierra-macports">MacOS (Sierra, MacPorts)</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples_01-init.html">Scene import/initialization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples_02-io.html">Saving and loading Scenes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples_03-quadtree.html">Quadtree parametrisation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples_04-covariance.html">Covariance calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Programming Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/01-loading_saving.html">Importing, Loading and Saving</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/03-quadtree.html">Quadtree Parametrisation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/04-covariance.html">Covariance calculation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="spool.html">Spool (GUI)</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="spool.html#displacement">Displacement</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spool.html#quadtree">Quadtree</a></li>
-<li class="toctree-l2"><a class="reference internal" href="spool.html#covariance">Covariance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spool.html"><code class="docutils literal"><span class="pre">Spool</span></code> (GUI)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#los-displacement-inspection">LOS Displacement inspection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#quadtree-manipulation">Quadtree manipulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="spool.html#covariance-parametrisation">Covariance parametrisation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Module Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="kite.scene.html">The Scene Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-sceneconfig">The SceneConfig</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-meta-information-container">The Meta Information Container</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-frame">The Frame</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#the-losunitvectors">The LOSUnitVectors</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.scene.html#module-kite.scene_io">The Scene I/O Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="talpa.html"><code class="docutils literal"><span class="pre">Talpa</span></code> Static Displacement Modelling (GUI)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="talpa.html#available-static-displacement-sources">Available Static Displacement Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="talpa.html#adding-sources">Adding Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="talpa.html#manipulating-sources">Manipulating Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="talpa.html#saving-and-saving-a-sandbox">Saving and Saving a Sandbox</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="kite.quadtree.html">The Quadtree Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kite.quadtree.html#the-quadtreeconfig">The QuadtreeConfig</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.quadtree.html#the-quadnode-class">The QuadNode Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/index.html">Module Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.scene.html">The Scene Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.quadtree.html">The Quadtree Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.covariance.html">The Covariance Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.spool.html">The Spool Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.sandboxscene.html">The SandboxScene Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/kite.sources.html">The Sources Module</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="kite.covariance.html">The Covariance Module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="kite.covariance.html#the-covarianceconfig">The CovarianceConfig</a></li>
-<li class="toctree-l3"><a class="reference internal" href="kite.covariance.html#model-assumptions">Model Assumptions</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="kite.spool.html">The Spool module</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 </ul>
 </div>
 </div>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Importing, Loading and Saving &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quadtree Parametrisation" href="03-quadtree.html" />
+    <link rel="prev" title="Programming Examples" href="index.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="index.html" accesskey="U">Programming Examples</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="importing-loading-and-saving">
+<h1>Importing, Loading and Saving<a class="headerlink" href="#importing-loading-and-saving" title="Permalink to this headline">¶</a></h1>
+<p>Import unwrapped displacement scene from different InSAR processors:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://gmt.soest.hawaii.edu/projects/gmt5sar">GMT5SAR</a></li>
+<li><a class="reference external" href="http://www.gamma-rs.ch/no_cache/software.html">GAMMA Software</a></li>
+<li><a class="reference external" href="http://roipac.org/cgi-bin/moin.cgi">ROI_PAC</a></li>
+<li><a class="reference external" href="https://winsar.unavco.org/isce.html">ISCE</a></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">See <a class="reference internal" href="../reference/kite.scene.html#module-kite.scene_io" title="kite.scene_io"><code class="xref py py-mod docutils literal"><span class="pre">kite.scene_io</span></code></a> for required file structures and definitions of respective formats.</p>
+</div>
+<div class="section" id="importing-a-displacement-scene">
+<h2>Importing a displacement scene<a class="headerlink" href="#importing-a-displacement-scene" title="Permalink to this headline">¶</a></h2>
+<p>We will start by importing a scene which has been processed by GMT5SAR.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">Scene</span>
+
+<span class="c1"># We import a unwrapped interferrogram scene.</span>
+<span class="c1"># The format shall be detected automatically</span>
+<span class="c1"># in this case processed a GMTSAR5</span>
+
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">import_data</span><span class="p">(</span><span class="s1">&#39;unwrap_ll.grd&#39;</span><span class="p">)</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">spool</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scene-set-up-from-scratch">
+<h2>Scene set-up from scratch<a class="headerlink" href="#scene-set-up-from-scratch" title="Permalink to this headline">¶</a></h2>
+<p>Initialisation of a generic binary dataset is also possible. Here the reference frame has to be initialized manually.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">Scene</span>
+
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="p">()</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">displacement</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">2048</span><span class="p">))</span>
+
+<span class="c1"># dummy line-of-sight vectors in radians</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">2048</span><span class="p">),</span> <span class="n">fill</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">phi</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">2048</span><span class="p">),</span> <span class="n">fill</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+
+
+<span class="c1"># Reference the scene&#39;s frame</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">llLat</span> <span class="o">=</span> <span class="mf">38.2095</span>  <span class="c1"># Lower-left corner latitude</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">llLon</span> <span class="o">=</span> <span class="mf">19.1256</span>  <span class="c1"># Lower-left corner longitude</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dLat</span> <span class="o">=</span> <span class="o">.</span><span class="mi">00005</span>  <span class="c1"># Latitudal pixel spacing in degree</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">dLon</span> <span class="o">=</span> <span class="o">.</span><span class="mi">00012</span>  <span class="c1"># Longitudal pixel spacing in degree</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="scene-inspection-with-spool">
+<h2>Scene Inspection with <code class="docutils literal"><span class="pre">spool</span></code><a class="headerlink" href="#scene-inspection-with-spool" title="Permalink to this headline">¶</a></h2>
+<p>You can use start <a class="reference internal" href="../spool.html"><span class="doc">Spool (GUI)</span></a> to inspect the scene and manipulate it’s properties.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">Scene</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">import_file</span><span class="p">(</span><span class="s1">&#39;unwrap_ll.grd&#39;</span><span class="p">)</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">spool</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Alternatively <code class="docutils literal"><span class="pre">spool</span></code> can be started from command line</p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span><span class="c1"># Start spool and import a displacement scene from a foreign format</span>
+spool --load unwrap_ll.grd
+
+<span class="c1"># Or load data from a native container</span>
+spool my_scene.yml
+</pre></div>
+</div>
+</div>
+<div class="section" id="saving-scenes-and-properties">
+<h2>Saving Scenes and Properties<a class="headerlink" href="#saving-scenes-and-properties" title="Permalink to this headline">¶</a></h2>
+<p>The native file structure of <code class="docutils literal"><span class="pre">kite</span></code> is based on NumPy binary files together with <a class="reference external" href="https://en.wikipedia.org/wiki/YAML">YAML</a> configuration files holding the necessary information to fully reconstruct instances of</p>
+<ul class="simple">
+<li><a class="reference internal" href="../reference/kite.quadtree.html#kite.Quadtree" title="kite.Quadtree"><code class="xref py py-class docutils literal"><span class="pre">Quadtree</span></code></a>,</li>
+<li><a class="reference internal" href="../reference/kite.covariance.html#kite.Covariance" title="kite.Covariance"><code class="xref py py-class docutils literal"><span class="pre">Covariance</span></code></a>,</li>
+<li>and <a class="reference internal" href="../reference/kite.scene.html#kite.scene.Meta" title="kite.scene.Meta"><code class="xref py py-class docutils literal"><span class="pre">Meta</span></code></a>,</li>
+</ul>
+<p>through serializing the correspondig <em>Config</em> classes (<a class="reference internal" href="../reference/index.html"><span class="doc">Module Reference</span></a>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The expensive calculation of <a class="reference internal" href="../reference/kite.covariance.html#kite.Covariance.covariance_matrix" title="kite.Covariance.covariance_matrix"><code class="xref py py-attr docutils literal"><span class="pre">kite.Covariance.covariance_matrix</span></code></a> is saved in the YAML file!</p>
+</div>
+<p>Importing data from a foreign file format and transfering it to kite’s native format is as easy as 1, 2, 3…</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">Scene</span>
+
+<span class="c1"># The .grd is interpreted as an GMT5SAR scene</span>
+<span class="n">sc</span> <span class="o">=</span> <span class="n">Scene</span><span class="o">.</span><span class="n">import_data</span><span class="p">(</span><span class="s1">&#39;unwrap_ll.grd&#39;</span><span class="p">)</span>
+
+<span class="c1"># Writes out the scene in kite&#39;s native format</span>
+<span class="n">sc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;kite_scene&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The kite file structure consists of only two files:</p>
+<p>:: sh</p>
+<blockquote>
+<div>kite_scene.yml
+kite_scene.npz</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="03-quadtree.html" title="Quadtree Parametrisation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Programming Examples"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

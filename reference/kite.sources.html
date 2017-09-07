@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The Sources Module &#8212; Kite  documentation</title>
+    <link rel="stylesheet" href="../_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing" href="../contributing.html" />
+    <link rel="prev" title="The SandboxScene Module" href="kite.sandboxscene.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="../_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+      <link rel="stylesheet" type="text/css"
+        href="https://fonts.googleapis.com/css?family=Roboto+Slab">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="../index.html">Kite  documentation</a> &#187;</li>
+          <li><a href="index.html" accesskey="U">Module Reference</a> &#187;</li> 
+      </ul>
+    </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-sources-module">
+<h1>The Sources Module<a class="headerlink" href="#the-sources-module" title="Permalink to this headline">¶</a></h1>
+<dl class="attribute">
+<dt id="kite.sources">
+<code class="descclassname">kite.</code><code class="descname">sources</code><a class="headerlink" href="#kite.sources" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#kite.sources" title="kite.sources"><code class="xref py py-class docutils literal"><span class="pre">kite.sources</span></code></a></p>
+</dd></dl>
+
+<div class="section" id="the-okada-model">
+<h2>The Okada Model<a class="headerlink" href="#the-okada-model" title="Permalink to this headline">¶</a></h2>
+<p>Surface displacement from Okada <a class="footnote-reference" href="#f1" id="id1">[1]</a> sources are calculated using a wrapped and parallelized (OpenMP)``disloc`` code.</p>
+<table class="docutils footnote" frame="void" id="f1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Okada, Y., 1992, Internal deformation due to shear and tensile faults in a half-space, Bull. Seism. Soc. Am., 82, 1018-1040.</td></tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="kite.sources.OkadaSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">OkadaSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/okada.html#OkadaSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.OkadaSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSourceRectangular" title="kite.sources.base.SandboxSourceRectangular"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSourceRectangular</span></code></a></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="OkadaSource.opening">
+<em class="property">♦ </em><code class="descname">opening</code><a class="headerlink" href="#OkadaSource.opening" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Opening of the plane in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="OkadaSource.nu">
+<em class="property">♦ </em><code class="descname">nu</code><a class="headerlink" href="#OkadaSource.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.25</span></code></p>
+<p>Poisson’s ratio, typically 0.25</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.sources.OkadaSource.moment_magnitude">
+<code class="descname">moment_magnitude</code><a class="headerlink" href="#kite.sources.OkadaSource.moment_magnitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moment magnitude from Seismic moment</p>
+<p>We assume <img class="math" src="../_images/math/a324702d29bd9c416dee8633f95854c0ce335081.svg" alt="M_\mathrm{w} = {\frac{2}{3}}\log_{10}(M_0) - 10.7"/></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Moment magnitude</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="kite.sources.OkadaSource.seismic_moment">
+<code class="descname">seismic_moment</code><a class="headerlink" href="#kite.sources.OkadaSource.seismic_moment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scalar Seismic moment</p>
+<p>Disregarding the opening (as for now)
+We assume a shear modulus of <img class="math" src="../_images/math/6ee692d894f5f827541ba812d5090ce8437d5fcb.svg" alt="\mu = 36 \mathrm{GPa}"/>
+and <img class="math" src="../_images/math/bd27e21fa11aeadc98afaabeb95364ac96304822.svg" alt="M_0 = \mu A D"/></p>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p>We assume a perfect elastic solid with <img class="math" src="../_images/math/fcd150187146f1897e40ed04916a0f7160b34d76.svg" alt="K=\frac{5}{3}\mu"/></p>
+<p class="last">Through <img class="math" src="../_images/math/c66b3a0366c672c15524cb4dc6e67f6b8e869679.svg" alt="\mu = \frac{3K(1-2\nu)}{2(1+\nu)}"/> this leads to
+<img class="math" src="../_images/math/4cf657a9c2cb8b70be875c94a6a40cec5b16ca16.svg" alt="\mu = \frac{8(1+\nu)}{1-2\nu}"/></p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Seismic moment release</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="pyrocko-source-models">
+<h2>Pyrocko Source Models<a class="headerlink" href="#pyrocko-source-models" title="Permalink to this headline">¶</a></h2>
+<p>Pyrocko source models are calculated using <a class="reference external" href="http://pyrocko.org/v0.3/library/reference/gf.html#module-pyrocko.gf" title="(in Pyrocko v0.3)"><code class="xref py py-mod docutils literal"><span class="pre">pyrocko.gf</span></code></a>.</p>
+<dl class="class">
+<dt id="kite.sources.PyrockoSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PyrockoSource</code><a class="reference internal" href="../_modules/kite/sources/pyrocko_gf.html#PyrockoSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PyrockoSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.PyrockoRectangularSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PyrockoRectangularSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/pyrocko_gf.html#PyrockoRectangularSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PyrockoRectangularSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSourceRectangular" title="kite.sources.base.SandboxSourceRectangular"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSourceRectangular</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">kite.sources.pyrocko_gf.PyrockoSource</span></code></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="PyrockoRectangularSource.decimation_factor">
+<em class="property">♦ </em><code class="descname">decimation_factor</code><a class="headerlink" href="#PyrockoRectangularSource.decimation_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">int</span></code>, <em>optional</em>, <em>default:</em> <code class="docutils literal"><span class="pre">10</span></code></p>
+<p>Sub-source decimation factor.</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRectangularSource.store_dir">
+<em class="property">♦ </em><code class="descname">store_dir</code><a class="headerlink" href="#PyrockoRectangularSource.store_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code></p>
+<p>Pyrocko GF Store path</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.PyrockoMomentTensor">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PyrockoMomentTensor</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/pyrocko_gf.html#PyrockoMomentTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PyrockoMomentTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">kite.sources.pyrocko_gf.PyrockoSource</span></code></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.store_dir">
+<em class="property">♦ </em><code class="descname">store_dir</code><a class="headerlink" href="#PyrockoMomentTensor.store_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code></p>
+<p>Pyrocko GF Store path</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.mnn">
+<em class="property">♦ </em><code class="descname">mnn</code><a class="headerlink" href="#PyrockoMomentTensor.mnn" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>north-north component of moment tensor in [Nm]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.mee">
+<em class="property">♦ </em><code class="descname">mee</code><a class="headerlink" href="#PyrockoMomentTensor.mee" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>east-east component of moment tensor in [Nm]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.mdd">
+<em class="property">♦ </em><code class="descname">mdd</code><a class="headerlink" href="#PyrockoMomentTensor.mdd" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>down-down component of moment tensor in [Nm]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.mne">
+<em class="property">♦ </em><code class="descname">mne</code><a class="headerlink" href="#PyrockoMomentTensor.mne" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>north-east component of moment tensor in [Nm]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.mnd">
+<em class="property">♦ </em><code class="descname">mnd</code><a class="headerlink" href="#PyrockoMomentTensor.mnd" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>north-down component of moment tensor in [Nm]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoMomentTensor.med">
+<em class="property">♦ </em><code class="descname">med</code><a class="headerlink" href="#PyrockoMomentTensor.med" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>east-down component of moment tensor in [Nm]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.PyrockoDoubleCouple">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PyrockoDoubleCouple</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/pyrocko_gf.html#PyrockoDoubleCouple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PyrockoDoubleCouple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">kite.sources.pyrocko_gf.PyrockoSource</span></code></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="PyrockoDoubleCouple.strike">
+<em class="property">♦ </em><code class="descname">strike</code><a class="headerlink" href="#PyrockoDoubleCouple.strike" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>strike direction in [deg], measured clockwise from north</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoDoubleCouple.magnitude">
+<em class="property">♦ </em><code class="descname">magnitude</code><a class="headerlink" href="#PyrockoDoubleCouple.magnitude" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">6.0</span></code></p>
+<p>moment magnitude Mw as in [Hanks and Kanamori, 1979]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoDoubleCouple.dip">
+<em class="property">♦ </em><code class="descname">dip</code><a class="headerlink" href="#PyrockoDoubleCouple.dip" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">90.0</span></code></p>
+<p>dip angle in [deg], measured downward from horizontal</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoDoubleCouple.rake">
+<em class="property">♦ </em><code class="descname">rake</code><a class="headerlink" href="#PyrockoDoubleCouple.rake" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>rake angle in [deg], measured counter-clockwise from right-horizontal in on-plane view</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoDoubleCouple.store_dir">
+<em class="property">♦ </em><code class="descname">store_dir</code><a class="headerlink" href="#PyrockoDoubleCouple.store_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code></p>
+<p>Pyrocko GF Store path</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.PyrockoRingfaultSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PyrockoRingfaultSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/pyrocko_gf.html#PyrockoRingfaultSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PyrockoRingfaultSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a>, <code class="xref py py-class docutils literal"><span class="pre">kite.sources.pyrocko_gf.PyrockoSource</span></code></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.store_dir">
+<em class="property">♦ </em><code class="descname">store_dir</code><a class="headerlink" href="#PyrockoRingfaultSource.store_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">str</span></code></p>
+<p>Pyrocko GF Store path</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.diameter">
+<em class="property">♦ </em><code class="descname">diameter</code><a class="headerlink" href="#PyrockoRingfaultSource.diameter" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>diameter of the ring in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.sign">
+<em class="property">♦ </em><code class="descname">sign</code><a class="headerlink" href="#PyrockoRingfaultSource.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>inside of the ring moves up (+1) or down (-1)</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.strike">
+<em class="property">♦ </em><code class="descname">strike</code><a class="headerlink" href="#PyrockoRingfaultSource.strike" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>strike direction of the ring plane, clockwise from north, in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.dip">
+<em class="property">♦ </em><code class="descname">dip</code><a class="headerlink" href="#PyrockoRingfaultSource.dip" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>dip angle of the ring plane from horizontal in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.npointsources">
+<em class="property">♦ </em><code class="descname">npointsources</code><a class="headerlink" href="#PyrockoRingfaultSource.npointsources" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">int</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">8</span></code></p>
+<p>number of point sources to use</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PyrockoRingfaultSource.magnitude">
+<em class="property">♦ </em><code class="descname">magnitude</code><a class="headerlink" href="#PyrockoRingfaultSource.magnitude" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">6.0</span></code></p>
+<p>moment magnitude Mw as in [Hanks and Kanamori, 1979]</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="compound-dislocation-models">
+<h2>Compound Dislocation Models<a class="headerlink" href="#compound-dislocation-models" title="Permalink to this headline">¶</a></h2>
+<p>Compound dislocation models developed by Mehdi Nikkhoo <a class="footnote-reference" href="#f2" id="id2">[2]</a>. Are implemented in Python.
+More information on the routines and sources at &lt;<a class="reference external" href="http://www.volcanodeformation.com">http://www.volcanodeformation.com</a>&gt;_.</p>
+<table class="docutils footnote" frame="void" id="f2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Nikkhoo, M., Walter, T. R., Lundgren, P. R., Prats-Iraola, P. (2017): Compound dislocation models (CDMs) for volcano deformation analyses. - Geophysical Journal International, 208, 2, p. 877-894.</td></tr>
+</tbody>
+</table>
+<dl class="class">
+<dt id="kite.sources.EllipsoidSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">EllipsoidSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/compound_sources.html#EllipsoidSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.EllipsoidSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="EllipsoidSource.length_x">
+<em class="property">♦ </em><code class="descname">length_x</code><a class="headerlink" href="#EllipsoidSource.length_x" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Length of x semi-axis of ellisoid before rotation in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.length_y">
+<em class="property">♦ </em><code class="descname">length_y</code><a class="headerlink" href="#EllipsoidSource.length_y" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Length of y semi-axis of ellisoid before rotation in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.length_z">
+<em class="property">♦ </em><code class="descname">length_z</code><a class="headerlink" href="#EllipsoidSource.length_z" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Length of z semi-axis of ellisoid before rotation in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.rotation_x">
+<em class="property">♦ </em><code class="descname">rotation_x</code><a class="headerlink" href="#EllipsoidSource.rotation_x" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around x-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.rotation_y">
+<em class="property">♦ </em><code class="descname">rotation_y</code><a class="headerlink" href="#EllipsoidSource.rotation_y" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around y-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.rotation_z">
+<em class="property">♦ </em><code class="descname">rotation_z</code><a class="headerlink" href="#EllipsoidSource.rotation_z" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around z-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.mu">
+<em class="property">♦ </em><code class="descname">mu</code><a class="headerlink" href="#EllipsoidSource.mu" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">8.0</span></code></p>
+<p>Shear modulus, 2. Lame constant in [GPa]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.lamda">
+<em class="property">♦ </em><code class="descname">lamda</code><a class="headerlink" href="#EllipsoidSource.lamda" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">8.0</span></code></p>
+<p>Lame constant in [GPa]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="EllipsoidSource.cavity_pressure">
+<em class="property">♦ </em><code class="descname">cavity_pressure</code><a class="headerlink" href="#EllipsoidSource.cavity_pressure" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.5</span></code></p>
+<p>Pressure on the cavity walls in [GPa]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.PointCompoundSource">
+<em class="property">class </em><code class="descclassname">kite.sources.</code><code class="descname">PointCompoundSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/compound_sources.html#PointCompoundSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.PointCompoundSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="PointCompoundSource.rotation_x">
+<em class="property">♦ </em><code class="descname">rotation_x</code><a class="headerlink" href="#PointCompoundSource.rotation_x" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around x-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.rotation_y">
+<em class="property">♦ </em><code class="descname">rotation_y</code><a class="headerlink" href="#PointCompoundSource.rotation_y" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around y-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.rotation_z">
+<em class="property">♦ </em><code class="descname">rotation_z</code><a class="headerlink" href="#PointCompoundSource.rotation_z" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.0</span></code></p>
+<p>Clockwise rotation of ellipsoid around z-axis in [deg]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.dVx">
+<em class="property">♦ </em><code class="descname">dVx</code><a class="headerlink" href="#PointCompoundSource.dVx" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Volume change in x-plane in [m3]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.dVy">
+<em class="property">♦ </em><code class="descname">dVy</code><a class="headerlink" href="#PointCompoundSource.dVy" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Volume change in y-plane in [m3]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.dVz">
+<em class="property">♦ </em><code class="descname">dVz</code><a class="headerlink" href="#PointCompoundSource.dVz" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">1.0</span></code></p>
+<p>Volume change in z-plane in [m3]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="PointCompoundSource.nu">
+<em class="property">♦ </em><code class="descname">nu</code><a class="headerlink" href="#PointCompoundSource.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">0.25</span></code></p>
+<p>Poisson’s ratio, typically 0.25</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="objects-bases">
+<h2>Objects Bases<a class="headerlink" href="#objects-bases" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="kite.sources.base.SandboxSource">
+<em class="property">class </em><code class="descclassname">kite.sources.base.</code><code class="descname">SandboxSource</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/base.html#SandboxSource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.base.SandboxSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="SandboxSource.easting">
+<em class="property">♦ </em><code class="descname">easting</code><a class="headerlink" href="#SandboxSource.easting" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code></p>
+<p>Easting in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSource.northing">
+<em class="property">♦ </em><code class="descname">northing</code><a class="headerlink" href="#SandboxSource.northing" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code></p>
+<p>Northing in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSource.depth">
+<em class="property">♦ </em><code class="descname">depth</code><a class="headerlink" href="#SandboxSource.depth" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code></p>
+<p>Depth in [m]</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="kite.sources.base.SandboxSourceRectangular">
+<em class="property">class </em><code class="descclassname">kite.sources.base.</code><code class="descname">SandboxSourceRectangular</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/kite/sources/base.html#SandboxSourceRectangular"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#kite.sources.base.SandboxSourceRectangular" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#kite.sources.base.SandboxSource" title="kite.sources.base.SandboxSource"><code class="xref py py-class docutils literal"><span class="pre">kite.sources.base.SandboxSource</span></code></a></p>
+<p>Undocumented.</p>
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.width">
+<em class="property">♦ </em><code class="descname">width</code><a class="headerlink" href="#SandboxSourceRectangular.width" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code></p>
+<p>Width, downdip in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.length">
+<em class="property">♦ </em><code class="descname">length</code><a class="headerlink" href="#SandboxSourceRectangular.length" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code></p>
+<p>Length in [m]</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.strike">
+<em class="property">♦ </em><code class="descname">strike</code><a class="headerlink" href="#SandboxSourceRectangular.strike" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">45.0</span></code></p>
+<p>Strike, clockwise from North in [deg]; -180-180</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.dip">
+<em class="property">♦ </em><code class="descname">dip</code><a class="headerlink" href="#SandboxSourceRectangular.dip" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">45.0</span></code></p>
+<p>Dip, down from horizontal in [deg]; 0-90</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.rake">
+<em class="property">♦ </em><code class="descname">rake</code><a class="headerlink" href="#SandboxSourceRectangular.rake" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>default:</em> <code class="docutils literal"><span class="pre">90.0</span></code></p>
+<p>Rake, clockwise in [deg]; 0 is right-lateral strike slip</p>
+</dd></dl>
+
+<dl class="gattribute">
+<dt id="SandboxSourceRectangular.slip">
+<em class="property">♦ </em><code class="descname">slip</code><a class="headerlink" href="#SandboxSourceRectangular.slip" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal"><span class="pre">float</span></code>, <em>optional</em>, <em>default:</em> <code class="docutils literal"><span class="pre">1.5</span></code></p>
+<p>Slip in [m]</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+    &nbsp;
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../contributing.html" title="Contributing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kite.sandboxscene.html" title="The SandboxScene Module"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, IfG University of Kiel, BridGeS project - Marius Paul Isken, Henriette Sudhaus, Andreas Steinberg, Sebastian Heimann.
+    </div>
+  </body>
+</html>

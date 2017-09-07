@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 
-
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
     <title>kite.scene &#8212; Kite  documentation</title>
-    
     <link rel="stylesheet" href="../../_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
@@ -37,7 +33,7 @@
     
 
   </head>
-  <body role="document">
+  <body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -58,15 +54,16 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">num</span>
 <span class="kn">import</span> <span class="nn">utm</span>
+<span class="kn">import</span> <span class="nn">os.path</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
 
 <span class="kn">from</span> <span class="nn">pyrocko</span> <span class="k">import</span> <span class="n">guts</span>
 <span class="kn">from</span> <span class="nn">pyrocko.orthodrome</span> <span class="k">import</span> <span class="n">latlon_to_ne</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">dt</span>
-<span class="kn">from</span> <span class="nn">.quadtree</span> <span class="k">import</span> <span class="n">QuadtreeConfig</span>
-<span class="kn">from</span> <span class="nn">.covariance</span> <span class="k">import</span> <span class="n">CovarianceConfig</span>
-<span class="kn">from</span> <span class="nn">.meta</span> <span class="k">import</span> <span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span><span class="p">,</span> <span class="n">greatCircleDistance</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">scene_io</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span>
+
+<span class="kn">from</span> <span class="nn">kite.quadtree</span> <span class="k">import</span> <span class="n">QuadtreeConfig</span>
+<span class="kn">from</span> <span class="nn">kite.covariance</span> <span class="k">import</span> <span class="n">CovarianceConfig</span>
+<span class="kn">from</span> <span class="nn">kite.util</span> <span class="k">import</span> <span class="n">Subject</span><span class="p">,</span> <span class="n">property_cached</span><span class="p">,</span> <span class="n">greatCircleDistance</span>
+<span class="kn">from</span> <span class="nn">kite</span> <span class="k">import</span> <span class="n">scene_io</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 
@@ -101,23 +98,25 @@
     <span class="k">pass</span>
 
 
-<div class="viewcode-block" id="FrameConfig"><a class="viewcode-back" href="../../kite.scene.html#kite.FrameConfig">[docs]</a><span class="k">class</span> <span class="nc">FrameConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Config object holding :class:`kite.scene.Scene` cobfiguration</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">llLat</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
-                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene latitude of lower left corner&#39;</span><span class="p">)</span>
-    <span class="n">llLon</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
-                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene longitude of lower left corner&#39;</span><span class="p">)</span>
-    <span class="n">dLat</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene pixel spacing in x direction [deg]&#39;</span><span class="p">)</span>
-    <span class="n">dLon</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene pixel spacing in y direction [deg]&#39;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="FrameConfig"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.FrameConfig">[docs]</a><span class="k">class</span> <span class="nc">FrameConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Config object holding :class:`kite.scene.Scene` cobfiguration &#39;&#39;&#39;</span>
+    <span class="n">llLat</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene latitude of lower left corner&#39;</span><span class="p">)</span>
+    <span class="n">llLon</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene longitude of lower left corner&#39;</span><span class="p">)</span>
+    <span class="n">dLat</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene pixel spacing in x direction [deg]&#39;</span><span class="p">)</span>
+    <span class="n">dLon</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Float</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">,</span></div>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene pixel spacing in y direction [deg]&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Frame"><a class="viewcode-back" href="../../kite.scene.html#kite.Frame">[docs]</a><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; UTM frame holding geographical references for :class:`kite.scene.Scene`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Frame"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Frame">[docs]</a><span class="k">class</span> <span class="nc">Frame</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; UTM frame holding geographical references for :class:`kite.scene.Scene`</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">FrameConfig</span><span class="p">()):</span>
@@ -160,6 +159,7 @@
     <span class="k">def</span> <span class="nf">_updateExtent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">cols</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">rows</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">llEutm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">llNutm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utm_zone</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utm_zone_letter</span> <span class="o">=</span>\
             <span class="n">utm</span><span class="o">.</span><span class="n">from_latlon</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">llLat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">llLon</span><span class="p">)</span>
 
@@ -196,6 +196,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">gridE</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gridN</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span>
 
     <span class="nd">@property</span>
@@ -238,10 +239,11 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">gridE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; UTM grid holding eastings of all pixels in ``NxM`` matrix</span>
+        <span class="sd">&#39;&#39;&#39; UTM grid holding eastings of all pixels in ``NxM`` matrix</span>
 <span class="sd">            of :attr:`~kite.Scene.displacement`.</span>
+
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``NxM``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">valid_data</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
         <span class="n">gridE</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>
                            <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -249,32 +251,42 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">gridN</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; UTM grid holding northings of all pixels in ``NxM`` matrix</span>
+        <span class="sd">&#39;&#39;&#39; UTM grid holding northings of all pixels in ``NxM`` matrix</span>
 <span class="sd">            of :attr:`~kite.Scene.displacement`.</span>
+
 <span class="sd">        :type: :class:`numpy.ndarray`, size ``NxM``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">valid_data</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
         <span class="n">gridN</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">[:,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
                            <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">gridN</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">num</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Frame.setENOffset"><a class="viewcode-back" href="../../kite.scene.html#kite.Frame.setENOffset">[docs]</a>    <span class="k">def</span> <span class="nf">setENOffset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set scene offsets in local cartesian coordinates.</span>
+    <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">E</span><span class="p">[</span><span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">[:,</span> <span class="n">num</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+                                  <span class="bp">self</span><span class="o">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">coords</span>
+
+<div class="viewcode-block" id="Frame.setENOffset"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Frame.setENOffset">[docs]</a>    <span class="k">def</span> <span class="nf">setENOffset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">east</span><span class="p">,</span> <span class="n">north</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Set scene offsets in local cartesian coordinates.</span>
 
 <span class="sd">        :param east: East offset in [m]</span>
 <span class="sd">        :type east: float, :class:`numpy.ndarray` or None</span>
 <span class="sd">        :param north: North offset in [m]</span>
 <span class="sd">        :type north: float, :class:`numpy.ndarray` or None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">offsetE</span> <span class="o">=</span> <span class="n">east</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">offsetN</span> <span class="o">=</span> <span class="n">north</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_updateExtent</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offsetN</span> <span class="o">=</span> <span class="n">north</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateExtent</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">setLatLonReference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="Frame.mapMatrixEN"><a class="viewcode-back" href="../../kite.scene.html#kite.Frame.mapMatrixEN">[docs]</a>    <span class="k">def</span> <span class="nf">mapMatrixEN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Maps matrix row, column to local easting and northing.</span>
+<div class="viewcode-block" id="Frame.mapMatrixEN"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Frame.mapMatrixEN">[docs]</a>    <span class="k">def</span> <span class="nf">mapMatrixEN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Maps matrix row, column to local easting and northing.</span>
 
 <span class="sd">        :param row: Matrix row number</span>
 <span class="sd">        :type row: int</span>
@@ -282,11 +294,11 @@
 <span class="sd">        :type col: int</span>
 <span class="sd">        :returns: Easting and northing in local coordinates</span>
 <span class="sd">        :rtype: tuple (float), (easting, northing)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">row</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dE</span><span class="p">,</span> <span class="n">col</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dN</span></div>
+<span class="sd">        &#39;&#39;&#39;</span></div>
+        <span class="k">return</span> <span class="n">row</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dE</span><span class="p">,</span> <span class="n">col</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dN</span>
 
-<div class="viewcode-block" id="Frame.mapENMatrix"><a class="viewcode-back" href="../../kite.scene.html#kite.Frame.mapENMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">mapENMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Maps local coordinates (easting and northing) to matrix</span>
+<div class="viewcode-block" id="Frame.mapENMatrix"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Frame.mapENMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">mapENMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Maps local coordinates (easting and northing) to matrix</span>
 <span class="sd">            row and column</span>
 
 <span class="sd">        :param E: Easting in local coordinates</span>
@@ -295,17 +307,17 @@
 <span class="sd">        :type N: float</span>
 <span class="sd">        :returns: Row and column</span>
 <span class="sd">        :rtype: tuple (int), (row, column)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">row</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">E</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dE</span><span class="p">)</span> <span class="k">if</span> <span class="n">E</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">col</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dN</span><span class="p">)</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="k">return</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span></div>
+        <span class="n">col</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">dN</span><span class="p">)</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span></div>
+        <span class="k">return</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="s1">&#39;Lower right latitude:  </span><span class="si">{frame.llLat:.4f}</span><span class="s1"> N</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;Lower right longitude: </span><span class="si">{frame.llLon:.4f}</span><span class="s1"> E</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
-            <span class="s1">&#39;UTM Zone:              </span><span class="si">{frame.utm_zone}{frame.utm_zone_letter}</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;UTM Zone:              </span><span class="si">{frame.utm_zone}{frame.utm_zone_letter}</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;Lower right easting:   </span><span class="si">{frame.llE:.4f}</span><span class="s1"> m</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;Lower right northing:  </span><span class="si">{frame.llN:.4f}</span><span class="s1"> m&#39;</span>
             <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
@@ -314,19 +326,19 @@
             <span class="s1">&#39;Extent east:           </span><span class="si">{frame.extentE:.4f}</span><span class="s1"> m</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;Extent north:          </span><span class="si">{frame.extentN:.4f}</span><span class="s1"> m</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="s1">&#39;Dimensions:            </span><span class="si">{frame.cols}</span><span class="s1"> x </span><span class="si">{frame.rows}</span><span class="s1"> px</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="s1">&#39;Spherical distortion:  </span><span class="si">{frame.spherical_distortion:.4f}</span><span class="s1"> m</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frame</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
+            <span class="s1">&#39;Spherical distortion:  </span><span class="si">{frame.spherical_distortion:.4f}</span><span class="s1"> m</span><span class="se">\n</span><span class="s1">&#39;</span></div>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frame</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Meta"><a class="viewcode-back" href="../../kite.scene.html#kite.Meta">[docs]</a><span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Meta configuration for ``Scene``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Meta"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Meta">[docs]</a><span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Meta configuration for ``Scene``.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">scene_title</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;Undefined&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene title&#39;</span><span class="p">)</span>
     <span class="n">scene_id</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene identification (uid, unused)&#39;</span><span class="p">)</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene identification&#39;</span><span class="p">)</span>
     <span class="n">satellite_name</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;Undefined&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Satellite mission name&#39;</span><span class="p">)</span>
@@ -346,6 +358,8 @@
     <span class="n">extra</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">Dict</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="p">{},</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Extra header information&#39;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">String</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
+        <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">time_separation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -354,14 +368,14 @@
 <span class="sd">                 and ``time_slave``</span>
 <span class="sd">        :type: timedelta</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_slave</span><span class="p">)</span> <span class="o">-</span>\
-            <span class="n">dt</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_master</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">dt</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_slave</span><span class="p">)</span> <span class="o">-</span>\</div>
+            <span class="n">dt</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_master</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="SceneConfig"><a class="viewcode-back" href="../../kite.scene.html#kite.SceneConfig">[docs]</a><span class="k">class</span> <span class="nc">SceneConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Configuration object, gathering ``kite.Scene`` and</span>
-<span class="sd">    sub-objects configuration.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SceneConfig"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.SceneConfig">[docs]</a><span class="k">class</span> <span class="nc">SceneConfig</span><span class="p">(</span><span class="n">guts</span><span class="o">.</span><span class="n">Object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Configuration object, gathering ``kite.Scene`` and</span>
+<span class="sd">        sub-objects configuration.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">meta</span> <span class="o">=</span> <span class="n">Meta</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
         <span class="n">default</span><span class="o">=</span><span class="n">Meta</span><span class="p">(),</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Scene metainformation&#39;</span><span class="p">)</span>
@@ -372,12 +386,12 @@
         <span class="n">default</span><span class="o">=</span><span class="n">QuadtreeConfig</span><span class="p">(),</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Quadtree parameters&#39;</span><span class="p">)</span>
     <span class="n">covariance</span> <span class="o">=</span> <span class="n">CovarianceConfig</span><span class="o">.</span><span class="n">T</span><span class="p">(</span>
-        <span class="n">default</span><span class="o">=</span><span class="n">CovarianceConfig</span><span class="p">(),</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Covariance parameters&#39;</span><span class="p">)</span></div>
+        <span class="n">default</span><span class="o">=</span><span class="n">CovarianceConfig</span><span class="p">(),</span></div>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Covariance parameters&#39;</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">dynamicmethod</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Decorator for dynamic classmethod / instancemethod declaration &#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;Decorator for dynamic classmethod / instancemethod declaration &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">dynclassmethod</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Scene</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -389,16 +403,10 @@
     <span class="k">return</span> <span class="n">dynclassmethod</span>
 
 
-<div class="viewcode-block" id="Scene"><a class="viewcode-back" href="../../kite.scene.html#kite.Scene">[docs]</a><span class="k">class</span> <span class="nc">Scene</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Scene holding satellite LOS ground dispacements measurements</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
-    <span class="n">evConfigChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+<div class="viewcode-block" id="BaseScene"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.BaseScene">[docs]</a><span class="k">class</span> <span class="nc">BaseScene</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">SceneConfig</span><span class="p">()):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_setupLogging</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">meta</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initLogging</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_displacement</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phi</span> <span class="o">=</span> <span class="kc">None</span>
@@ -406,15 +414,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">los</span> <span class="o">=</span> <span class="n">LOSUnitVectors</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">import_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_data</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load</span>
+        <span class="n">frame_config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;frame_config&#39;</span><span class="p">,</span> <span class="n">FrameConfig</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_setupLogging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">fattr</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;llLat&#39;</span><span class="p">,</span> <span class="s1">&#39;llLon&#39;</span><span class="p">,</span> <span class="s1">&#39;dLat&#39;</span><span class="p">,</span> <span class="s1">&#39;dLon&#39;</span><span class="p">]:</span>
+            <span class="n">coord</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">fattr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coord</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">frame_config</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">fattr</span><span class="p">,</span> <span class="n">coord</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">Frame</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">frame_config</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">]:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initLogging</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;Scene&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_log_stream</span> <span class="o">=</span> <span class="kc">None</span>
@@ -430,12 +447,12 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">displacement</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Geodetical displacement in *meter*.</span>
+        <span class="sd">&#39;&#39;&#39; Geodetical displacement in [m].</span>
 
 <span class="sd">        :setter: Set the unwrapped InSAR displacement.</span>
 <span class="sd">        :getter: Return the displacement matrix.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, ``NxM``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_displacement</span>
 
     <span class="nd">@displacement</span><span class="o">.</span><span class="n">setter</span>
@@ -447,17 +464,18 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">displacement_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Displacement :attr:`numpy.nan` mask</span>
+        <span class="sd">&#39;&#39;&#39; Displacement :attr:`numpy.nan` mask</span>
+
 <span class="sd">        :type: :class:`numpy.ndarray`, dtype :class:`numpy.bool`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">displacement</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Horizontal angle towards satellite&#39; :abbr:`line of sight (LOS)`</span>
-<span class="sd">        in radians</span>
+        <span class="sd">&#39;&#39;&#39; Horizontal angle towards satellite&#39; :abbr:`line of sight (LOS)`</span>
+<span class="sd">            in [rad]</span>
 
-<span class="sd">        .. note ::</span>
+<span class="sd">        .. important ::</span>
 
 <span class="sd">            Kite convention is:</span>
 
@@ -468,7 +486,7 @@
 <span class="sd">                 for static look vector.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size same as</span>
 <span class="sd">               :attr:`~kite.Scene.displacement` or int</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phi</span>
 
     <span class="nd">@phi</span><span class="o">.</span><span class="n">setter</span>
@@ -477,15 +495,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_phi</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_setDataNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_phi&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">los_rotation_factors</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">theta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Theta is look vector elevation angle towards satellite from horizon</span>
-<span class="sd">        in radians. Matrix of theta towards satellite&#39;s</span>
-<span class="sd">        :abbr:`line of sight (LOS)`.</span>
+        <span class="sd">&#39;&#39;&#39; Theta is look vector elevation angle towards satellite from horizon</span>
+<span class="sd">            in radians. Matrix of theta towards satellite&#39;s</span>
+<span class="sd">            :abbr:`line of sight (LOS)`.</span>
 
-<span class="sd">        .. note ::</span>
+<span class="sd">        .. important ::</span>
 
 <span class="sd">            Kite convention!</span>
 
@@ -496,7 +515,7 @@
 <span class="sd">                 for static look vector.</span>
 <span class="sd">        :type: :class:`numpy.ndarray`, size same as</span>
 <span class="sd">               :attr:`~kite.Scene.displacement` or int</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_theta</span>
 
     <span class="nd">@theta</span><span class="o">.</span><span class="n">setter</span>
@@ -505,38 +524,111 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_theta</span> <span class="o">=</span> <span class="n">value</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_setDataNumpy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_theta&#39;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">los_rotation_factors</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">notify</span><span class="p">()</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">thetaDeg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; LOS incident angle in degree, ``NxM`` matrix like</span>
+        <span class="sd">&#39;&#39;&#39; LOS elevation angle in degree, ``NxM`` matrix like</span>
 <span class="sd">            :class:`kite.Scene.theta`</span>
+
 <span class="sd">        :type: :class:`numpy.ndarray`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">phiDeg</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; LOS incident angle in degree, ``NxM`` matrix like</span>
+        <span class="sd">&#39;&#39;&#39; LOS horizontal orientation angle in degree, ``NxM`` matrix like</span>
 <span class="sd">            :class:`kite.Scene.theta`</span>
+
 <span class="sd">        :type: :class:`numpy.ndarray`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
 
     <span class="nd">@property_cached</span>
+    <span class="k">def</span> <span class="nf">los_rotation_factors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Trigonometric factors to rotate displacement matrices towards LOS</span>
+
+<span class="sd">        Rotation is as follows:</span>
+
+<span class="sd">        ..</span>
+<span class="sd">            displacement_los =\</span>
+<span class="sd">                (los_rotation_factors[:, :, 0] * -down +</span>
+<span class="sd">                 los_rotation_factors[:, :, 1] * east +</span>
+<span class="sd">                 los_rotation_factors[:, :, 2] * north)</span>
+
+<span class="sd">        :returns: Factors for rotation</span>
+<span class="sd">        :rtype: :class:`numpy.ndarray`, ``NxMx3``</span>
+<span class="sd">        :raises: AttributeError</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;LOS angles inconsistent with provided&#39;</span>
+                                 <span class="s1">&#39; coordinate shape.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                           <span class="mi">3</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>\
+                <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>\
+                <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_los_factors</span>
+
+
+<div class="viewcode-block" id="Scene"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Scene">[docs]</a><span class="k">class</span> <span class="nc">Scene</span><span class="p">(</span><span class="n">BaseScene</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Scene of unwrapped InSAR ground dispacements measurements</span>
+
+<span class="sd">    :param config: Configuration object</span>
+<span class="sd">    :type config: :class:`SceneConfig`, optional</span>
+
+<span class="sd">    Optional parameters</span>
+
+<span class="sd">    :param displacement: Displacement in [m]</span>
+<span class="sd">    :type displacement: :class:`numpy.ndarray`, NxM, optional</span>
+<span class="sd">    :param theta: Theta look angle, see :attr:`Scene.theta`</span>
+<span class="sd">    :type theta: :class:`numpy.ndarray`, NxM, optional</span>
+<span class="sd">    :param phi: Phi look angle, see :attr:`Scene.phi`</span>
+<span class="sd">    :type phi: :class:`numpy.ndarray`, NxM, optional</span>
+
+<span class="sd">    :param llLat: Lower left latitude in [deg]</span>
+<span class="sd">    :type llLat: float, optional</span>
+<span class="sd">    :param llLon: Lower left longitude in [deg]</span>
+<span class="sd">    :type llLon: float, optional</span>
+<span class="sd">    :param dLat: Pixel spacing in latitude [deg]</span>
+<span class="sd">    :type dLat: float, optional</span>
+<span class="sd">    :param dLon: Pixel spacing in longitude [deg]</span>
+<span class="sd">    :type dLon: float, optional</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">evChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+    <span class="n">evConfigChanged</span> <span class="o">=</span> <span class="n">Subject</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">SceneConfig</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">meta</span>
+
+        <span class="n">BaseScene</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame_config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">frame</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># wiring special methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">import_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_import_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load</span>
+
+    <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">quadtree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Instanciates the scene&#39;s quadtree.</span>
+        <span class="sd">&#39;&#39;&#39; Instanciates the scene&#39;s quadtree.</span>
+
 <span class="sd">        :type: :class:`kite.quadtree.Quadtree`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating kite.Quadtree instance&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">kite.quadtree</span> <span class="k">import</span> <span class="n">Quadtree</span>
         <span class="k">return</span> <span class="n">Quadtree</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">quadtree</span><span class="p">)</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Instanciates the scene&#39;s covariance attribute.</span>
+        <span class="sd">&#39;&#39;&#39; Instanciates the scene&#39;s covariance attribute.</span>
+
 <span class="sd">        :type: :class:`kite.covariance.Covariance`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Creating kite.Covariance instance&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">kite.covariance</span> <span class="k">import</span> <span class="n">Covariance</span>
         <span class="k">return</span> <span class="n">Covariance</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">covariance</span><span class="p">)</span>
@@ -549,15 +641,15 @@
         <span class="kn">from</span> <span class="nn">kite.plot2d</span> <span class="k">import</span> <span class="n">ScenePlot</span>
         <span class="k">return</span> <span class="n">ScenePlot</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Scene.spool"><a class="viewcode-back" href="../../kite.scene.html#kite.Scene.spool">[docs]</a>    <span class="k">def</span> <span class="nf">spool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Start the spool user interface :class:`~kite.spool.Spool` to inspect</span>
+<div class="viewcode-block" id="Scene.spool"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Scene.spool">[docs]</a>    <span class="k">def</span> <span class="nf">spool</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Start the spool user interface :class:`~kite.spool.Spool` to inspect</span>
 <span class="sd">        the scene.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">displacement</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SceneError</span><span class="p">(</span><span class="s1">&#39;Can not display an empty scene.&#39;</span><span class="p">)</span>
         <span class="kn">from</span> <span class="nn">kite.spool</span> <span class="k">import</span> <span class="n">Spool</span>
-        <span class="n">spool</span> <span class="o">=</span> <span class="n">Spool</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">spool</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">buildViews</span><span class="p">()</span></div>
+        <span class="n">spool</span> <span class="o">=</span> <span class="n">Spool</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">spool</span><span class="o">.</span><span class="n">spool_win</span><span class="o">.</span><span class="n">buildViews</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_testImport</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -575,8 +667,8 @@
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Something went wrong during import - &#39;</span>
                               <span class="s1">&#39;see Exception!&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Scene.save"><a class="viewcode-back" href="../../kite.scene.html#kite.Scene.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Save kite scene to kite file structure</span>
+<div class="viewcode-block" id="Scene.save"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.Scene.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; Save kite scene to kite file structure</span>
 
 <span class="sd">        Saves the current scene meta information and UTM frame to a YAML</span>
 <span class="sd">        (``.yml``) file. Numerical data (:attr:`~kite.Scene.displacement`,</span>
@@ -587,41 +679,41 @@
 <span class="sd">            &#39; :attr:`~kite.Scene.meta.scene_id` ``_``</span>
 <span class="sd">            :attr:`~kite.Scene.meta.scene_view`</span>
 <span class="sd">        :type filename: str, optional</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="ow">or</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">scene_id</span><span class="p">,</span>
                                           <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">scene_view</span><span class="p">)</span>
-        <span class="n">_file</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">_file</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;yml&#39;</span><span class="p">,</span> <span class="s1">&#39;npz&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">filename</span>
+        <span class="n">_file</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">_file</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.yml&#39;</span><span class="p">,</span> <span class="s1">&#39;.npz&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">filename</span>
 
         <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saving scene data to </span><span class="si">%s</span><span class="s1">.npz&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving scene data to </span><span class="si">%s</span><span class="s1">.npz&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
         <span class="n">num</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.npz&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">),</span>
-                  <span class="o">*</span><span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">components</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">save_config</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.yml&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span></div>
+                  <span class="o">*</span><span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">components</span><span class="p">])</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saveConfig</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.yml&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">save_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="n">_file</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">_file</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;yml&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">filename</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Saving scene config to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">saveConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="n">_file</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.yml&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">filename</span> <span class="o">+</span> <span class="s1">&#39;.yml&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving scene config to </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">,</span>
                          <span class="n">header</span><span class="o">=</span><span class="s1">&#39;kite.Scene YAML Config&#39;</span><span class="p">)</span>
 
     <span class="nd">@dynamicmethod</span>
     <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Load a kite scene from file ``filename.[npz,yml]``</span>
+        <span class="sd">&#39;&#39;&#39; Load a kite scene from file ``filename.[npz,yml]``</span>
 <span class="sd">        structure.</span>
 
 <span class="sd">        :param filename: Filenames the scene data is saved under</span>
 <span class="sd">        :type filename: str</span>
 <span class="sd">        :returns: Scene object from data resources</span>
 <span class="sd">        :rtype: :class:`~kite.Scene`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">scene</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;displacement&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">]</span>
 
-        <span class="n">basename</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading from </span><span class="si">%s</span><span class="s1">[.npz,.yml]&#39;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
+        <span class="n">basename</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loading from </span><span class="si">%s</span><span class="s1">[.npz,.yml]&#39;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.npz&#39;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
@@ -634,13 +726,14 @@
         <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">UserIOWarning</span><span class="p">(</span><span class="s1">&#39;Could not load </span><span class="si">%s</span><span class="s1">.yml&#39;</span> <span class="o">%</span> <span class="n">basename</span><span class="p">)</span>
 
+        <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="n">scene</span><span class="o">.</span><span class="n">_testImport</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">scene</span>
 
     <span class="n">load</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_load</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Loading config from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Loading config from </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">filename</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">guts</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">meta</span>
 
@@ -648,7 +741,7 @@
 
     <span class="nd">@dynamicmethod</span>
     <span class="k">def</span> <span class="nf">_import_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Import displacement data from foreign file format.</span>
+        <span class="sd">&#39;&#39;&#39; Import displacement data from foreign file format.</span>
 
 <span class="sd">        :param path: Filename of resource to import</span>
 <span class="sd">        :type path: str</span>
@@ -657,23 +750,35 @@
 <span class="sd">        :returns: Scene from path</span>
 <span class="sd">        :rtype: :class:`~kite.Scene`</span>
 <span class="sd">        :raises: TypeError</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">scene</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="kn">import</span> <span class="nn">os</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">op</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">op</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;File </span><span class="si">%s</span><span class="s1"> does not exist!&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">scene_io</span><span class="o">.</span><span class="n">__all__</span><span class="p">:</span>
             <span class="n">module</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;scene_io.</span><span class="si">%s</span><span class="s1">(scene)&#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-                <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Importing </span><span class="si">%s</span><span class="s1"> using </span><span class="si">%s</span><span class="s1"> module&#39;</span> <span class="o">%</span>
-                                <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mod</span><span class="p">))</span>
+                <span class="n">scene</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Importing </span><span class="si">%s</span><span class="s1"> using </span><span class="si">%s</span><span class="s1"> module&#39;</span> <span class="o">%</span>
+                                 <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mod</span><span class="p">))</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Could not recognize format for </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">path</span><span class="p">)</span>
 
+        <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">op</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scene</span><span class="o">.</span><span class="n">_import_from_dict</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+    <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> \
+        <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Supported import modules are **</span><span class="si">%s</span><span class="s1">**.</span><span class="se">\n</span><span class="s1">&#39;</span>\
+        <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scene_io</span><span class="o">.</span><span class="n">__all__</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">scene_io</span><span class="o">.</span><span class="n">__all__</span><span class="p">:</span>
+        <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">**</span><span class="si">%s</span><span class="s1">**</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mod</span>
+        <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;scene_io.</span><span class="si">%s</span><span class="s1">.__doc__&#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
+    <span class="n">import_data</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_import_data</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_import_from_dict</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">sk</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">,</span> <span class="s1">&#39;displacement&#39;</span><span class="p">]:</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">sk</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">sk</span><span class="p">])</span>
 
@@ -688,22 +793,14 @@
         <span class="n">scene</span><span class="o">.</span><span class="n">_testImport</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">scene</span>
 
-    <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> \
-        <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Supported import modules are **</span><span class="si">%s</span><span class="s1">**.</span><span class="se">\n</span><span class="s1">&#39;</span>\
-        <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scene_io</span><span class="o">.</span><span class="n">__all__</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">scene_io</span><span class="o">.</span><span class="n">__all__</span><span class="p">:</span>
-        <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">**</span><span class="si">%s</span><span class="s1">**</span><span class="se">\n\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mod</span>
-        <span class="n">_import_data</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">+=</span> <span class="nb">eval</span><span class="p">(</span><span class="s1">&#39;scene_io.</span><span class="si">%s</span><span class="s1">.__doc__&#39;</span> <span class="o">%</span> <span class="n">mod</span><span class="p">)</span>
-    <span class="n">import_data</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_import_data</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="LOSUnitVectors"><a class="viewcode-back" href="../../kite.scene.html#kite.LOSUnitVectors">[docs]</a><span class="k">class</span> <span class="nc">LOSUnitVectors</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Decomposed Line Of Sight vectors (LOS) derived from</span>
-<span class="sd">    :attr:`~kite.Scene.displacement`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LOSUnitVectors"><a class="viewcode-back" href="../../reference/kite.scene.html#kite.LOSUnitVectors">[docs]</a><span class="k">class</span> <span class="nc">LOSUnitVectors</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Decompose line-of-sight (LOS) angles derived from</span>
+<span class="sd">    :attr:`~kite.Scene.displacement` to unit vector.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scene</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span> <span class="o">=</span> <span class="n">scene</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">evChanged</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_flush_vectors</span><span class="p">)</span>
@@ -715,31 +812,31 @@
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">unitE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Unit vector in East, ``NxM`` matrix like</span>
+        <span class="sd">&#39;&#39;&#39; Unit vector east component, ``NxM`` matrix like</span>
 <span class="sd">            :attr:`~kite.Scene.displacement`</span>
 <span class="sd">        :type: :class:`numpy.ndarray`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">unitN</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Unit vector in North, ``NxM`` matrix like</span>
+        <span class="sd">&#39;&#39;&#39; Unit vector north component, ``NxM`` matrix like</span>
 <span class="sd">            :attr:`~kite.Scene.displacement`</span>
 <span class="sd">        :type: :class:`numpy.ndarray`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">num</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
 
     <span class="nd">@property_cached</span>
     <span class="k">def</span> <span class="nf">unitU</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Unit vector Up, ``NxM`` matrix like</span>
+        <span class="sd">&#39;&#39;&#39; Unit vector vertical (up) component, ``NxM`` matrix like</span>
 <span class="sd">            :attr:`~kite.Scene.displacement`</span>
 <span class="sd">        :type: :class:`numpy.ndarray`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span></div>
+<span class="sd">        &#39;&#39;&#39;</span></div>
+        <span class="k">return</span> <span class="n">num</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_scene</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">SceneTest</span><span class="p">(</span><span class="n">Scene</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Test scenes for synthetic displacements &quot;&quot;&quot;</span>
+<span class="k">class</span> <span class="nc">TestScene</span><span class="p">(</span><span class="n">Scene</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Test scenes for synthetic displacement &#39;&#39;&#39;</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">createGauss</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -787,7 +884,7 @@
 
         <span class="n">scene</span><span class="o">.</span><span class="n">displacement</span> <span class="o">=</span> <span class="n">displ</span> <span class="o">*</span> <span class="n">amplitude</span>
         <span class="k">if</span> <span class="n">noise</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">addNoise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
+            <span class="n">scene</span><span class="o">.</span><span class="n">addNoise</span><span class="p">(</span><span class="n">noise</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">scene</span>
 
     <span class="nd">@classmethod</span>
@@ -821,7 +918,7 @@
         <span class="n">r2</span> <span class="o">=</span> <span class="n">k_rad</span> <span class="o">&gt;=</span> <span class="n">k2</span>
 
         <span class="n">beta</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
-        <span class="c1"># From Hanssen (2000)</span>
+        <span class="c1"># From Hanssen (2001)</span>
         <span class="c1">#   beta+1 is used as beta, since, the power exponent</span>
         <span class="c1">#   is defined for a 1D slice of the 2D spectrum:</span>
         <span class="c1">#   austin94: &quot;Adler, 1981, shows that the surface profile</span>
@@ -830,7 +927,7 @@
         <span class="c1">#   a fractal dimension  equal to that of the 2D</span>
         <span class="c1">#   surface decreased by one.&quot;</span>
         <span class="n">beta</span> <span class="o">+=</span> <span class="mf">1.</span>
-        <span class="c1"># From Hanssen (2000)</span>
+        <span class="c1"># From Hanssen (2001)</span>
         <span class="c1">#   The power beta/2 is used because the power spectral</span>
         <span class="c1">#   density is proportional to the amplitude squared</span>
         <span class="c1">#   Here we work with the amplitude, instead of the power</span>
@@ -894,7 +991,7 @@
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">testScene</span> <span class="o">=</span> <span class="n">SceneTest</span><span class="o">.</span><span class="n">createGauss</span><span class="p">()</span>
+    <span class="n">testScene</span> <span class="o">=</span> <span class="n">TestScene</span><span class="o">.</span><span class="n">createGauss</span><span class="p">()</span>
 </pre></div>
 
           </div>
